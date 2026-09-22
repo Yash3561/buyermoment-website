@@ -1,23 +1,42 @@
-# BuyerMoment website
+# BuyerMoment
 
-Customer-facing landing page for BuyerMoment.
+The service website for a seven-day customer research and campaign-planning sprint.
 
-The page presents BuyerMoment as a focused, service-first growth sprint: we read customer conversations and turn them into clearer campaign angles, a practical test plan, and a decision about what is ready for budget.
+## Stack
 
-## Local preview
+React 19, TypeScript, Vite, Lucide icons, and a custom responsive CSS system. Production output is prerendered HTML and static assets: the actual service copy is readable before JavaScript loads, then React hydrates the menu, example switcher, and enquiry form.
 
-```bash
-python -m http.server 4173
+## Development
+
+```sh
+npm ci
+npm run dev
 ```
 
-Then open `http://localhost:4173`.
+Local preview: http://127.0.0.1:4173. Run `npm run build` for type checking, client and server builds, and homepage prerendering. `npm run preview` serves the production build.
 
-## Before outreach
+## Project structure
 
-- Replace `hello@buyermoment.ai` with the team's real inbox or booking URL.
-- Replace the `$750` founding rate if the team chooses a different pilot price.
-- Keep the illustrative buyer signal labeled as illustrative until a real customer case study exists.
+- `src/App.tsx`: page sections and composition.
+- `src/components/`: brand, navigation, interactive evidence example, and contact flow.
+- `src/content.ts`: brand details, pricing, example content, FAQs, and contact configuration.
+- `src/styles.css`: colour tokens, typography, responsive layouts, reduced-motion support.
+- `scripts/prerender.mjs`: writes the rendered React page into the built HTML entry point.
+- `.openai/hosting.json`: identity of the existing Sites deployment; assets publish from `dist/`.
 
-## Positioning notes
+## Contact setup — required before outreach
 
-The copy intentionally leads with a concrete customer outcome rather than AI terminology. It mentions Meta, Google, ChatGPT Ads, and AEO/GEO as possible execution surfaces, while keeping the offer centered on the work BuyerMoment can deliver today.
+Set `site.email` in `src/content.ts` to an inbox the team actually owns and monitors. Optionally set `site.bookingUrl` to a real booking page. The old `hello@buyermoment.ai` address was an unverified placeholder and has been removed.
+
+Until an inbox is configured, the form explicitly says nothing is sent and allows prospects to prepare, copy, or download a brief. With an inbox configured, it opens an email draft for the visitor to send. It is not a server-backed form and does not claim to have delivered or stored a lead. If the team wants automatic lead capture later, add a real endpoint and delivery/error handling.
+
+## Commercial and design decisions
+
+- BuyerMoment remains the working name; no new brand name has been approved.
+- $750 USD is the existing founding sprint price, not a recurring subscription.
+- Research and planning are included. Media spend, creative production, management, and optional AI-search work are separately scoped.
+- All example conversations are clearly labelled as illustrative. No invented testimonials, results, customers, platform partnerships, or scarcity claims.
+- ChatGPT advertising is described as dependent on advertiser access and fit; there is no promise of universal placement.
+- Website access remains as configured in Sites. Confirm the public audience and contact destination before sending this site to prospects.
+
+See `docs/design-references.md` for the reference research and original visual direction.
