@@ -92,15 +92,15 @@
       .price-note { color: var(--muted); font-size: 14px; margin: 0 0 23px; }
 
       .proof { padding-top: 0; }
-      .proof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 48px; }
-      .proof-card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 28px; min-height: 215px; }
-      .proof-card.large { grid-row: span 2; min-height: 448px; background: radial-gradient(circle at 85% 15%, rgba(215,255,99,.13), transparent 38%), var(--card); }
+      .proof-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 48px; }
+      .proof-card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 28px; min-height: 292px; display: flex; flex-direction: column; }
+      .proof-card.large { min-height: 292px; background: radial-gradient(circle at 85% 15%, rgba(215,255,99,.13), transparent 38%), var(--card); }
       .proof-card h3 { margin: 26px 0 8px; font-size: 22px; letter-spacing: -.04em; }
       .proof-card p { margin: 0; color: var(--muted); max-width: 380px; }
       .mini-icon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgba(215,255,99,.12); color: var(--acid); font-weight: 700; }
-      .metric { display: flex; justify-content: space-between; align-items: end; gap: 15px; margin-top: 76px; padding-top: 18px; border-top: 1px solid var(--line); }
-      .metric strong { font-size: 46px; letter-spacing: -.07em; font-weight: 500; }
-      .metric span { color: var(--muted); font-size: 13px; max-width: 160px; text-align: right; }
+      .metric { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-top: auto; padding-top: 18px; border-top: 1px solid var(--line); }
+      .metric strong { font-size: 38px; letter-spacing: -.07em; font-weight: 500; }
+      .metric span { color: var(--muted); font-size: 13px; max-width: none; text-align: left; }
 
       .final { padding: 105px 0 130px; border-top: 1px solid var(--line); }
       .final-inner { display: flex; justify-content: space-between; align-items: end; gap: 40px; }
@@ -125,7 +125,7 @@
         .offer-card { padding: 23px; }
         .price-box { border-left: 0; border-top: 1px solid var(--line); padding: 26px 0 0; }
         .proof-grid { grid-template-columns: 1fr; }
-        .proof-card.large { grid-row: auto; min-height: 325px; }
+        .proof-card.large { min-height: 325px; }
         .final { padding: 78px 0 95px; }
         .footer { gap: 20px; flex-direction: column; }
       }
@@ -179,7 +179,7 @@
           <div class="offer-card"><div><h3 class="offer-title">The BuyerMoment Sprint</h3><p class="offer-sub">We read one product’s customer evidence and turn it into a practical campaign brief your team can approve and run.</p><div class="deliverables"><div class="deliverable">A short buyer-language report</div><div class="deliverable">The recurring objections</div><div class="deliverable">A Meta / Google test plan</div><div class="deliverable">Three campaign angles</div><div class="deliverable">Optional AI-search brief</div><div class="deliverable">AEO / GEO recommendations</div></div></div><div class="price-box"><div class="price-label">Two founding slots</div><div class="price">$750 <small>/ sprint</small></div><p class="price-note">One product. One week. One clear set of experiments. You keep control of the ad accounts and media spend.</p><a class="button" href="mailto:hello@buyermoment.ai?subject=BuyerMoment%20founding%20pilot">Ask about a pilot <span aria-hidden="true">↗</span></a></div></div>
         </section>
 
-        <section class="wrap proof" aria-labelledby="proof-title"><div class="section-kicker">What you actually get</div><h2 id="proof-title">A clear next step you can <em>use.</em></h2><div class="proof-grid"><article class="proof-card large"><div class="mini-icon">◎</div><h3>A short report</h3><p>Know which customer language is backed by real signal, which is an inference, and which needs more proof before it deserves budget.</p><div class="metric"><strong>01</strong><span>prioritized experiment brief for your next growth conversation</span></div></article><article class="proof-card"><div class="mini-icon">↗</div><h3>A test plan</h3><p>Three campaign angles, a suggested audience, a landing-page direction, and the metric that matters.</p></article><article class="proof-card"><div class="mini-icon">⌁</div><h3>No invented proof</h3><p>We will not manufacture testimonials, results, or case studies. Early clients help us build the real ones.</p></article></div></section>
+        <section class="wrap proof" aria-labelledby="proof-title"><div class="section-kicker">What you actually get</div><h2 id="proof-title">The work you can <em>actually use.</em></h2><div class="proof-grid"><article class="proof-card large"><div class="mini-icon">◎</div><h3>A short report</h3><p>Know which customer language is backed by real signal, which is an inference, and which needs more proof before it deserves budget.</p><div class="metric"><strong>01</strong><span>focused brief your team can take into the next growth meeting</span></div></article><article class="proof-card"><div class="mini-icon">↗</div><h3>A test plan</h3><p>Three campaign angles, a suggested audience, a landing-page direction, and the metric that matters.</p></article><article class="proof-card"><div class="mini-icon">⌁</div><h3>No invented proof</h3><p>We will not manufacture testimonials, results, or case studies. Early clients help us build the real ones.</p></article></div></section>
 
         <section class="final"><div class="wrap final-inner"><div><div class="section-kicker">Make the next campaign count</div><h2>If you have the conversations, we can find the angle.</h2><p class="final-copy">Send us the material you already have. We’ll tell you what it says, what to test, and where to start.</p></div><a class="button" href="mailto:hello@buyermoment.ai?subject=BuyerMoment%20pilot%20conversation">Start a conversation <span aria-hidden="true">↗</span></a></div></section>
       </main>
@@ -188,4 +188,3 @@
     </div>
   </body>
 </html>
-
