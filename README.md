@@ -1,4 +1,4 @@
-# BuyerMoment
+# Motivory
 
 The service website for a seven-day customer research and campaign-planning sprint.
 
@@ -26,13 +26,13 @@ Local preview: http://127.0.0.1:4173. Run `npm run build` for type checking, cli
 
 ## Contact setup — required before outreach
 
-Set `site.email` in `src/content.ts` to an inbox the team actually owns and monitors. Optionally set `site.bookingUrl` to a real booking page. The old `hello@buyermoment.ai` address was an unverified placeholder and has been removed.
+Set `site.email` in `src/content.ts` to an inbox the team actually owns and monitors. Optionally set `site.bookingUrl` to a real booking page. No unverified email address is published.
 
 Until an inbox is configured, the form explicitly says nothing is sent and allows prospects to prepare, copy, or download a brief. With an inbox configured, it opens an email draft for the visitor to send. It is not a server-backed form and does not claim to have delivered or stored a lead. If the team wants automatic lead capture later, add a real endpoint and delivery/error handling.
 
 ## Commercial and design decisions
 
-- BuyerMoment remains the working name; no new brand name has been approved.
+- Motivory is the approved service name. The existing GitHub repository and hosted URL keep their original identifiers.
 - $750 USD is the existing founding sprint price, not a recurring subscription.
 - Research and planning are included. Media spend, creative production, management, and optional AI-search work are separately scoped.
 - All example conversations are clearly labelled as illustrative. No invented testimonials, results, customers, platform partnerships, or scarcity claims.

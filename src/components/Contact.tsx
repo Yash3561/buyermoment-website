@@ -8,12 +8,12 @@ export function Contact() {
   function prepare(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const text = `BuyerMoment sprint enquiry\n\nName: ${data.get("name")}\nEmail: ${data.get("email")}\nWebsite: ${data.get("website") || "Not provided"}\n\nWhat we want to work on:\n${data.get("goal")}\n\nInterested in the $750 seven-day research and planning sprint.`;
+    const text = `${site.name} sprint enquiry\n\nName: ${data.get("name")}\nEmail: ${data.get("email")}\nWebsite: ${data.get("website") || "Not provided"}\n\nWhat we want to work on:\n${data.get("goal")}\n\nInterested in the $${site.price} seven-day research and planning sprint.`;
     setBrief(text);
     setCopied(false);
     setCopyError(false);
     if (site.email)
-      window.location.href = `mailto:${site.email}?subject=${encodeURIComponent("Let’s talk about a BuyerMoment sprint")}&body=${encodeURIComponent(text)}`;
+      window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(`Let’s talk about a ${site.name} sprint`)}&body=${encodeURIComponent(text)}`;
   }
   async function copy() {
     try {
@@ -30,7 +30,7 @@ export function Contact() {
     );
     const link = document.createElement("a");
     link.href = url;
-    link.download = "buyermoment-enquiry.txt";
+    link.download = `${site.name.toLowerCase()}-enquiry.txt`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
@@ -138,7 +138,7 @@ export function Contact() {
                 </button>
                 {site.email && (
                   <a
-                    href={`mailto:${site.email}?subject=BuyerMoment%20sprint&body=${encodeURIComponent(brief)}`}
+                    href={`mailto:${site.email}?subject=${encodeURIComponent(`${site.name} sprint`)}&body=${encodeURIComponent(brief)}`}
                   >
                     <Mail size={16} />
                     Open email

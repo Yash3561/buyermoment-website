@@ -2,7 +2,7 @@
 
 Reviewed September 22, 2026. These are reference principles, not copied wording or borrowed proof.
 
-| Reference                                                                          | What we studied                                                            | BuyerMoment's interpretation                                                            |
+| Reference                                                                          | What we studied                                                            | Motivory's interpretation                                                               |
 | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | [Peec AI](https://peec.ai/)                                                        | Clear category headline, restrained typography, product demonstration      | Make the offer immediately legible and demonstrate how a buyer statement becomes a test |
 | [NoGood](https://nogood.io/)                                                       | Strong agency identity, confident type, distinctive visual treatment       | Use a recognisable charcoal/lime identity and an annotated research note                |

@@ -1,6 +1,6 @@
 // Keep brand and commercial details here so a future rename is a small change.
 export const site = {
-  name: "BuyerMoment",
+  name: "Motivory",
   email: "", // Set to a verified team inbox before accepting email enquiries.
   bookingUrl: "",
   price: 750,

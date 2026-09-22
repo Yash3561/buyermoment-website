@@ -318,7 +318,7 @@ function Pricing() {
         </div>
         <article className="price-card">
           <div className="price-card-top">
-            <span className="micro">THE BUYERMOMENT SPRINT</span>
+            <span className="micro">THE {site.name.toUpperCase()} SPRINT</span>
             <span className="price-badge">Founding rate</span>
           </div>
           <div className="price">
