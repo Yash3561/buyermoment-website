@@ -4,7 +4,7 @@ The service website for a seven-day customer research and campaign-planning spri
 
 ## Stack
 
-React 19, TypeScript, Vite, Lucide icons, and a custom responsive CSS system. Production output is prerendered HTML and static assets: the actual service copy is readable before JavaScript loads, then React hydrates the menu, example switcher, and enquiry form.
+React 19, TypeScript, Vite, Lucide icons, and a custom responsive CSS system. Production output is prerendered HTML and static assets: the service copy and booking links are readable before JavaScript loads, then React hydrates the menu and example switcher.
 
 ## Development
 
@@ -19,21 +19,21 @@ Local preview: http://127.0.0.1:4173. Run `npm run build` for type checking, cli
 
 - `src/App.tsx`: page sections and composition.
 - `src/components/`: brand, navigation, interactive evidence example, and contact flow.
-- `src/content.ts`: brand details, pricing, example content, FAQs, and contact configuration.
+- `src/content.ts`: brand details, example content, FAQs, and booking configuration.
 - `src/styles.css`: colour tokens, typography, responsive layouts, reduced-motion support.
 - `scripts/prerender.mjs`: writes the rendered React page into the built HTML entry point.
 - `.openai/hosting.json`: identity of the existing Sites deployment; assets publish from `dist/`.
 
 ## Contact setup — required before outreach
 
-Set `site.email` in `src/content.ts` to an inbox the team actually owns and monitors. Optionally set `site.bookingUrl` to a real booking page. No unverified email address is published.
+Set `site.bookingUrl` in `src/content.ts` to the team's verified Calendly event URL. This connects the header, hero, consultation, and final booking buttons to the same event in a new tab. No API key or Calendly script is required.
 
-Until an inbox is configured, the form explicitly says nothing is sent and allows prospects to prepare, copy, or download a brief. With an inbox configured, it opens an email draft for the visitor to send. It is not a server-backed form and does not claim to have delivered or stored a lead. If the team wants automatic lead capture later, add a real endpoint and delivery/error handling.
+Until a booking URL is supplied, the calls to action lead to the contact section, which explicitly says online scheduling is unavailable. Its Book now button is disabled. The site never invents availability or claims a meeting has been booked. Booking completion and confirmation are handled by Calendly.
 
 ## Commercial and design decisions
 
 - Motivory is the approved service name. The existing GitHub repository and hosted URL keep their original identifiers.
-- $750 USD is the existing founding sprint price, not a recurring subscription.
+- No public rates or starting prices. Scope, timing, and fees are discussed in the consultation and confirmed in a written proposal.
 - Research and planning are included. Media spend, creative production, management, and optional AI-search work are separately scoped.
 - All example conversations are clearly labelled as illustrative. No invented testimonials, results, customers, platform partnerships, or scarcity claims.
 - ChatGPT advertising is described as dependent on advertiser access and fit; there is no promise of universal placement.

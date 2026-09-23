@@ -2,9 +2,7 @@
 export const site = {
   name: "Motivory",
   email: "", // Set to a verified team inbox before accepting email enquiries.
-  bookingUrl: "",
-  price: 750,
-  currency: "USD",
+  bookingUrl: "", // Set to the team's verified Calendly event URL.
 };
 
 export const examples = [
@@ -73,6 +71,11 @@ export const deliverables = [
 
 export const faqs = [
   {
+    question: "How much does it cost?",
+    answer:
+      "We discuss pricing in our first meeting, once we understand your goals, the material available, and the work you need. You receive a written proposal with scope, timing, and fees before deciding whether to move forward.",
+  },
+  {
     question: "What do you need from us?",
     answer:
       "Your product page, a short kickoff conversation, and customer material you are authorised to share: sales notes, reviews, support conversations, or interview transcripts. We agree the source volume before the sprint starts. Please remove personal or sensitive information first.",
@@ -85,7 +88,7 @@ export const faqs = [
   {
     question: "Does the sprint include running our ads?",
     answer:
-      "The $750 sprint covers research and campaign planning. Creative production, campaign setup, ongoing management, and media spend are separate. If you want help with execution, we agree a written scope and price after the sprint.",
+      "Our research sprint focuses on customer insight and campaign planning. If you also need creative production, campaign setup, or ongoing management, we discuss that in the meeting and include the agreed work in your proposal. Media spend is quoted separately from our fees.",
   },
   {
     question: "How do AI search and paid ads fit together?",

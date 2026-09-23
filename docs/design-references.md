@@ -20,7 +20,7 @@ An annotated working brief. Customer words are highlighted, connected to a possi
 - One H1 and valid internal navigation targets.
 - Example selection updates the quote, interpretation, direction, and measurement.
 - FAQ expansion, mobile menu opening and closing on navigation.
-- Enquiry draft generation explicitly reports that it has not been sent.
+- Consultation calls to action lead to the booking section while the event URL is unconfigured; Book now is explicitly disabled with a scheduling-unavailable message.
 - No console warnings or errors observed during the tested interactions.
 
-Contact delivery cannot be verified until the team provides its inbox or booking link. No claims of campaign performance or accessibility certification are made.
+Public numeric pricing has been removed from copy, FAQs, metadata, and the client configuration. Scope and fees are discussed in the meeting. Calendly booking cannot be activated or verified until the team provides its event URL. No claims of campaign performance or accessibility certification are made.

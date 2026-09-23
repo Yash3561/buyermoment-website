@@ -11,6 +11,7 @@ import { Header } from "./components/Header";
 import { Brand } from "./components/Brand";
 import { EvidenceDemo } from "./components/EvidenceDemo";
 import { Contact } from "./components/Contact";
+import { BookingLink } from "./components/BookingLink";
 import { deliverables, faqs, site } from "./content";
 
 function Hero() {
@@ -39,9 +40,7 @@ function Hero() {
             the message, shape the angles, and map out what to test.
           </p>
           <div className="hero-actions">
-            <a className="button button-lime" href="#contact">
-              Find your next angle <ArrowUpRight size={19} aria-hidden="true" />
-            </a>
+            <BookingLink className="button button-lime" />
             <a className="text-link" href="#the-work">
               See the work <ArrowRight size={17} aria-hidden="true" />
             </a>
@@ -135,7 +134,7 @@ function Approach() {
               You see the evidence behind the recommendation—and the questions
               that still need an answer.
             </p>
-            <a className="text-link dark-link" href="#pricing">
+            <a className="text-link dark-link" href="#consultation">
               Explore the sprint <ArrowUpRight size={18} aria-hidden="true" />
             </a>
             <div className="approach-note">
@@ -292,20 +291,21 @@ function Channels() {
     </section>
   );
 }
-function Pricing() {
+function Consultation() {
   return (
-    <section id="pricing" className="pricing-section section-pad">
+    <section id="consultation" className="pricing-section section-pad">
       <div className="container pricing-grid">
         <div className="pricing-intro">
-          <p className="eyebrow">04 / START WITH A SPRINT</p>
+          <p className="eyebrow">04 / START WITH A CONVERSATION</p>
           <h2>
-            A small first step.
+            Your business first.
             <br />
-            <em>A real piece of work.</em>
+            <em>A plan that fits.</em>
           </h2>
           <p>
-            For founders and small marketing teams with a product to sell and a
-            message they want to sharpen.
+            Tell us where you want to go and what is getting in the way. We’ll
+            discuss the right scope and pricing together, then put the details
+            in a proposal for you to review.
           </p>
           <div className="fit-note">
             <span className="micro">A GOOD FIT IF</span>
@@ -318,23 +318,19 @@ function Pricing() {
         </div>
         <article className="price-card">
           <div className="price-card-top">
-            <span className="micro">THE {site.name.toUpperCase()} SPRINT</span>
-            <span className="price-badge">Founding rate</span>
+            <span className="micro">WORK WITH {site.name.toUpperCase()}</span>
+            <span className="price-badge">Let’s talk</span>
           </div>
-          <div className="price">
-            ${site.price}
-            <span>USD / one-time</span>
-          </div>
+          <h3 className="consultation-title">Let’s find your next move.</h3>
           <p className="price-summary">
-            One product. One audience. Seven days.
+            A conversation about your business, before a commitment.
           </p>
           <ul className="price-inclusions">
             {[
-              "Kickoff and agreed research scope",
-              "A buyer-language brief with source references",
-              "Three campaign angles and supporting rationale",
-              "One prioritised test plan and measurement outline",
-              "A walkthrough and one round of revisions",
+              "Your product, audience, and growth goals",
+              "The customer evidence you already have",
+              "Where research or campaign support would help",
+              "A scope, timeline, and fee that fit the work",
             ].map((item) => (
               <li key={item}>
                 <Check size={18} aria-hidden="true" />
@@ -342,14 +338,10 @@ function Pricing() {
               </li>
             ))}
           </ul>
-          <a className="button button-dark" href="#contact">
-            Let’s talk about your sprint{" "}
-            <ArrowUpRight size={19} aria-hidden="true" />
-          </a>
+          <BookingLink className="button button-dark" />
           <p className="price-fine">
-            Starts after kickoff and receipt of agreed materials. Media spend,
-            creative production, and campaign management are separate. AI-search
-            work is scoped separately.
+            Pricing is discussed in the meeting. You approve the written scope
+            and fees before any work starts. Media spend is agreed separately.
           </p>
         </article>
       </div>
@@ -406,13 +398,12 @@ function Footer() {
           <a href="#privacy">Privacy & contact</a>
         </div>
         <details className="privacy-details" id="privacy">
-          <summary>How this website handles your enquiry</summary>
+          <summary>How booking works</summary>
           <p>
-            This form prepares a draft in your browser. It does not upload your
-            details to a database. If an email address is configured, submitting
-            opens your email app; the message is sent only when you choose to
-            send it there. Copying or downloading saves a copy at your request.
-            Avoid including sensitive customer data. The hosting provider may
+            Booking opens Calendly in a new tab. Details you enter there are
+            handled by Calendly and the meeting organiser to arrange your call.
+            Please leave out confidential customer information. This website
+            does not collect booking details itself. The hosting provider may
             process technical access logs to operate this website.
           </p>
         </details>
@@ -434,7 +425,7 @@ export default function App() {
         <Deliverables />
         <Process />
         <Channels />
-        <Pricing />
+        <Consultation />
         <FAQ />
         <Contact />
       </main>

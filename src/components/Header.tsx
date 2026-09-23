@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { ArrowUpRight, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Brand } from "./Brand";
+import { BookingLink } from "./BookingLink";
 export function Header() {
   const [open, setOpen] = useState(false);
   useEffect(() => {
@@ -22,7 +23,7 @@ export function Header() {
           {[
             ["approach", "Our approach"],
             ["the-work", "The work"],
-            ["pricing", "Pricing"],
+            ["consultation", "Work with us"],
             ["questions", "FAQs"],
           ].map(([id, label]) => (
             <a href={`#${id}`} key={id} onClick={() => setOpen(false)}>
@@ -30,9 +31,7 @@ export function Header() {
             </a>
           ))}
         </nav>
-        <a className="button button-small nav-contact" href="#contact">
-          Let’s talk <ArrowUpRight size={17} aria-hidden="true" />
-        </a>
+        <BookingLink className="button button-small nav-contact" />
         <button
           className="menu-toggle"
           aria-controls="primary-navigation"
