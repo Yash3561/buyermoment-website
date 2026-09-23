@@ -1,9 +1,11 @@
 // Keep brand and commercial details here so a future rename is a small change.
 export const site = {
   name: "Motivory",
-  email: "", // Set to a verified team inbox before accepting email enquiries.
+  email: "ygc2@njit.edu",
   bookingUrl: "", // Set to the team's verified Calendly event URL.
 };
+
+export const contactEmailUrl = `mailto:${site.email}?subject=${encodeURIComponent("Let's talk about Motivory")}`;
 
 export const examples = [
   {

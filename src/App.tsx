@@ -398,12 +398,13 @@ function Footer() {
           <a href="#privacy">Privacy & contact</a>
         </div>
         <details className="privacy-details" id="privacy">
-          <summary>How booking works</summary>
+          <summary>Privacy & contact</summary>
           <p>
-            Booking opens Calendly in a new tab. Details you enter there are
-            handled by Calendly and the meeting organiser to arrange your call.
-            Please leave out confidential customer information. This website
-            does not collect booking details itself. The hosting provider may
+            {site.bookingUrl
+              ? "Booking opens Calendly in a new tab. Details you enter there are handled by Calendly and the meeting organiser to arrange your call."
+              : "Email links open your email app. We use the information you send to respond to your enquiry and arrange a conversation."}
+            {" "}Please leave out confidential customer information. This website
+            does not collect enquiry details through a form. The hosting provider may
             process technical access logs to operate this website.
           </p>
         </details>

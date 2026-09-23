@@ -1,5 +1,5 @@
-import { ArrowUpRight, CalendarDays } from "lucide-react";
-import { site } from "../content";
+import { ArrowUpRight, CalendarDays, Mail } from "lucide-react";
+import { contactEmailUrl, site } from "../content";
 
 export function Contact() {
   return (
@@ -26,12 +26,17 @@ export function Contact() {
           </div>
         </div>
         <div className="booking-card">
-          <CalendarDays size={32} strokeWidth={1.4} aria-hidden="true" />
+          {site.bookingUrl ? (
+            <CalendarDays size={32} strokeWidth={1.4} aria-hidden="true" />
+          ) : (
+            <Mail size={32} strokeWidth={1.4} aria-hidden="true" />
+          )}
           <p className="micro">MEET THE MOTIVORY TEAM</p>
           <h3>Let’s talk about your business.</h3>
           <p>
-            Choose a time on our calendar. We’ll use the meeting to understand
-            your priorities and discuss a proposal that fits.
+            {site.bookingUrl
+              ? "Choose a time on our calendar. We’ll use the meeting to understand your priorities and discuss a proposal that fits."
+              : "Tell us a little about your business and what you’re working on. We’ll arrange a time to talk through your goals, scope, and pricing."}
           </p>
           {site.bookingUrl ? (
             <a
@@ -44,16 +49,16 @@ export function Contact() {
             </a>
           ) : (
             <>
-              <button
+              <a
                 className="button button-lime"
-                disabled
-                aria-describedby="booking-status"
+                href={contactEmailUrl}
               >
-                Book now <ArrowUpRight size={19} aria-hidden="true" />
-              </button>
-              <p id="booking-status" className="form-note">
-                Our booking calendar is being set up. Online scheduling is not
-                available yet.
+                Email us <ArrowUpRight size={19} aria-hidden="true" />
+              </a>
+              <p className="form-note">
+                <a href={contactEmailUrl}>{site.email}</a>
+                <br />
+                Opens your email app. Prefer webmail? Copy the address above.
               </p>
             </>
           )}
@@ -64,7 +69,7 @@ export function Contact() {
             </p>
           )}
           <a className="booking-privacy" href="#privacy">
-            How booking works
+            Privacy & contact
           </a>
         </div>
       </div>

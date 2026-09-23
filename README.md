@@ -24,11 +24,11 @@ Local preview: http://127.0.0.1:4173. Run `npm run build` for type checking, cli
 - `scripts/prerender.mjs`: writes the rendered React page into the built HTML entry point.
 - `.openai/hosting.json`: identity of the existing Sites deployment; assets publish from `dist/`.
 
-## Contact setup — required before outreach
+## Contact setup
 
 Set `site.bookingUrl` in `src/content.ts` to the team's verified Calendly event URL. This connects the header, hero, consultation, and final booking buttons to the same event in a new tab. No API key or Calendly script is required.
 
-Until a booking URL is supplied, the calls to action lead to the contact section, which explicitly says online scheduling is unavailable. Its Book now button is disabled. The site never invents availability or claims a meeting has been booked. Booking completion and confirmation are handled by Calendly.
+Until a booking URL is supplied, all primary calls to action open an email draft addressed to `ygc2@njit.edu`, with a Motivory enquiry subject. The contact section also displays the address for visitors who prefer webmail. Sending the email is up to the visitor; the website does not submit or store enquiries. Once configured, booking completion and confirmation are handled by Calendly.
 
 ## Commercial and design decisions
 
