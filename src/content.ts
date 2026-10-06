@@ -1,7 +1,7 @@
 // Update the inbox only after the domain mailbox can send and receive email.
 export const site = {
   name: "ContextLumen",
-  url: "https://contextlumen.com",
+  url: "https://www.contextlumen.com",
   email: "ygc2@njit.edu",
   bookingUrl: "", // Set to the team's verified scheduling URL.
 };

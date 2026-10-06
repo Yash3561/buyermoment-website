@@ -6,7 +6,7 @@ const html = await readFile("dist/index.html", "utf8");
 assert(html.includes("<h1"), "Homepage must be prerendered.");
 assert(html.includes(site.name), "Brand must appear in the rendered page.");
 assert(
-  html.includes('href="' + site.url + '/"'),
+  html.includes('<link rel="canonical" href="' + site.url + '/"'),
   "Canonical URL must be present.",
 );
 assert(
@@ -43,6 +43,18 @@ for (const [, fragment] of html.matchAll(/href="#([^"]+)"/g)) {
 }
 const robots = await readFile("dist/robots.txt", "utf8");
 const sitemap = await readFile("dist/sitemap.xml", "utf8");
+const hosting = JSON.parse(await readFile("vercel.json", "utf8"));
+assert(
+  !hosting.redirects?.length,
+  "Domain redirects are owned by Vercel domain settings; duplicating them can cause loops.",
+);
+for (const [, asset] of html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)) {
+  assert(
+    (await stat("dist" + asset)).size > 0,
+    "Missing built asset: " + asset,
+  );
+}
+assert(html.includes('content="' + site.url + '/social-card.png"'));
 assert(robots.includes(site.url + "/sitemap.xml"));
 assert(sitemap.includes("<loc>" + site.url + "/</loc>"));
 for (const file of ["favicon.svg", "logo.svg", "social-card.png"]) {

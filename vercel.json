@@ -2,14 +2,6 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "redirects": [
-    {
-      "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.contextlumen.com" }],
-      "destination": "https://contextlumen.com/:path*",
-      "permanent": true
-    }
-  ],
   "headers": [
     {
       "source": "/:path*",

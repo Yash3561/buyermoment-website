@@ -22,7 +22,7 @@ The local server uses http://127.0.0.1:4173. The production build runs type chec
 
 Deploy the existing GitHub repository on Vercel using Vite, `npm run build`, and `dist` as the output directory. The repository name can remain `buyermoment-website`; it does not appear in the customer-facing brand.
 
-The primary domain is `https://contextlumen.com`. See [Domain setup](docs/domain-setup.md) for Vercel and Spaceship configuration, DNS precautions, and mailbox setup. Buying the domain alone does not make it live.
+The primary domain is `https://www.contextlumen.com`. Vercel's domain settings redirect `contextlumen.com` to www. Domain redirects are managed only in the Vercel dashboard, not duplicated in `vercel.json`. See [Domain setup](docs/domain-setup.md) for configuration and DNS precautions.
 
 The existing `.openai/hosting.json` is historical Sites deployment metadata and is not used by Vercel.
 
@@ -35,7 +35,8 @@ The existing `.openai/hosting.json` is historical Sites deployment metadata and 
 - `scripts/prerender.mjs`: rendered homepage and Organization/WebSite structured data.
 - `scripts/check-build.mjs`: production output validation.
 - `public/`: CL brand assets, social preview, robots file, and sitemap.
-- `vercel.json`: build settings, www redirect, and baseline response headers.
+- `vercel.json`: build settings and baseline response headers. Domain redirects belong in Vercel's domain settings.
+- `scripts/check-live.mjs`: read-only checks of both custom-domain hosts, redirects, live CSS/JavaScript, branding, and metadata. Run `npm run check:live` after deployment.
 
 ## Contact
 
