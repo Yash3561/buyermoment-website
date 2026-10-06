@@ -1,0 +1,67 @@
+{
+  "version": "contextlumen-sample-v1",
+  "checkedAt": "2026-10-06T12:00:00Z",
+  "requestedUrl": "https://sample.example/",
+  "finalUrl": "https://sample.example/",
+  "scope": "Fictional homepage and robots.txt. Demonstration data only; no website was scanned.",
+  "cached": false,
+  "evidence": {
+    "redirects": [{ "url": "https://sample.example/", "status": 200 }],
+    "robotsUrl": "https://sample.example/robots.txt",
+    "robotsStatus": 200
+  },
+  "findings": [
+    {
+      "id": "sample-title",
+      "title": "A title that identifies the business",
+      "status": "observed",
+      "evidence": "Illustrative HTML: <title>Harbor Studio | Website design for local businesses</title>.",
+      "meaning": "The example title names the business and its service. This does not establish a ranking or an AI recommendation.",
+      "action": "Keep titles accurate and specific to each page. Confirm the service description with the business.",
+      "priority": 4,
+      "source": "https://developers.google.com/search/docs/appearance/title-link"
+    },
+    {
+      "id": "sample-crawl",
+      "title": "Search crawler policy needs review",
+      "status": "review",
+      "evidence": "Illustrative robots.txt: User-agent: OAI-SearchBot followed by Disallow: /.",
+      "meaning": "This example asks OpenAI's search crawler not to crawl the site. A robots policy is not a live test of crawler access or proof of zero visibility.",
+      "action": "Ask the site owner whether this restriction is intentional. Review search access separately from model-training preferences before changing it.",
+      "priority": 1,
+      "source": "https://developers.openai.com/api/docs/bots"
+    },
+    {
+      "id": "sample-content",
+      "title": "The service description needs a clearer answer",
+      "status": "review",
+      "evidence": "Illustrative opening copy: We deliver innovative digital solutions. It does not identify the deliverable, intended customer, or next step.",
+      "meaning": "A reader has to infer what is being offered. This is a qualitative content observation, not a search-engine scoring rule.",
+      "action": "State the service, audience, and project process in visible text. Add supporting details the business can substantiate.",
+      "priority": 2,
+      "source": "https://developers.google.com/search/docs/fundamentals/creating-helpful-content"
+    },
+    {
+      "id": "sample-schema",
+      "title": "No JSON-LD block in the example",
+      "status": "note",
+      "evidence": "The fictional HTML contains no application/ld+json script block.",
+      "meaning": "JSON-LD is one way to describe entities. Its absence is not an automatic failure and does not establish whether other structured data is present.",
+      "action": "Consider supported structured data that matches the visible page. Do not add invented reviews, ratings, or unsupported claims.",
+      "priority": 3,
+      "source": "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data"
+    }
+  ],
+  "summary": { "observed": 1, "review": 2, "notes": 1, "total": 4 },
+  "training": {
+    "agent": "GPTBot",
+    "allowedByRobots": false,
+    "note": "Fictional training-policy example. Training permissions and search discovery are different decisions."
+  },
+  "limitations": [
+    "DEMONSTRATION DATA ONLY. Harbor Studio and sample.example are fictional examples, not clients or measured results.",
+    "The four findings explain the report format. They are not the complete automated checklist or an actual scan.",
+    "No ChatGPT, Gemini, Perplexity, or Google AI answer was collected for this example.",
+    "No website changes were made. No before-and-after improvement is claimed."
+  ]
+}

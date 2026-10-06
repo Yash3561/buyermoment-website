@@ -7,7 +7,12 @@ import {
   LogOut,
   LoaderCircle,
 } from "lucide-react";
-import { getAuditAuth } from "../auth";
+import { getAuditAuth, auditAuthConfigured, googleAuthEnabled } from "../auth";
+import {
+  authReturnState,
+  googleSignInOptions,
+  isReadinessReport,
+} from "../lib/audit-flow.mjs";
 import { contactEmailUrl } from "../content";
 import {
   WebsiteChecker,
@@ -22,10 +27,7 @@ type Allowance = {
 export function AuditPage() {
   const [auth, setAuth] =
     useState<Awaited<ReturnType<typeof getAuditAuth>>>(null);
-  const configured =
-    import.meta.env.VITE_AUDIT_ENABLED === "true" &&
-    !!import.meta.env.VITE_SUPABASE_URL &&
-    !!import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const configured = auditAuthConfigured;
   useEffect(() => {
     let alive = true;
     getAuditAuth()
@@ -47,6 +49,7 @@ export function AuditPage() {
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
   const [ready, setReady] = useState(!configured);
   const [error, setError] = useState("");
   const [allowance, setAllowance] = useState<Allowance | null>(null);
@@ -62,17 +65,33 @@ export function AuditPage() {
       return;
     }
     let alive = true;
+    const callback = authReturnState(window.location.href);
     auth.auth
       .getSession()
       .then(({ data, error }) => {
         if (!alive) return;
-        if (error)
+        // The SDK exchanges a PKCE code first. Only scrub it after getSession.
+        window.history.replaceState(
+          window.history.state,
+          "",
+          callback.cleanPath,
+        );
+        if (callback.failed || (callback.hasCode && !data.session))
+          setError(
+            "Google sign-in was not completed. Please try again or use email.",
+          );
+        else if (error)
           setError("We could not restore your session. Please sign in again.");
         setSession(data.session);
         setReady(true);
       })
       .catch(() => {
         if (alive) {
+          window.history.replaceState(
+            window.history.state,
+            "",
+            callback.cleanPath,
+          );
           setReady(true);
           setError("Sign-in is temporarily unavailable.");
         }
@@ -117,7 +136,7 @@ export function AuditPage() {
           );
         if (
           !["available", "running", "completed"].includes(result.state) ||
-          (result.state === "completed" && !result.report?.findings)
+          (result.state === "completed" && !isReadinessReport(result.report))
         )
           throw new Error("Your saved audit could not be verified.");
         clearTimeout(timeout);
@@ -139,7 +158,7 @@ export function AuditPage() {
 
   async function signIn(event: FormEvent) {
     event.preventDefault();
-    if (!auth || busy) return;
+    if (!auth || busy || googleBusy) return;
     setBusy(true);
     setError("");
     try {
@@ -165,6 +184,23 @@ export function AuditPage() {
       );
     } finally {
       setBusy(false);
+    }
+  }
+  async function signInWithGoogle() {
+    if (!auth || busy || googleBusy || !googleAuthEnabled) return;
+    setGoogleBusy(true);
+    setError("");
+    try {
+      const { error } = await auth.auth.signInWithOAuth(
+        googleSignInOptions(window.location.origin),
+      );
+      if (error) throw error;
+    } catch {
+      setError(
+        "Google sign-in is unavailable right now. Try email or contact us.",
+      );
+    } finally {
+      setGoogleBusy(false);
     }
   }
   async function signOut() {
@@ -204,6 +240,14 @@ export function AuditPage() {
           <span>No changes to your site</span>
           <span>One successful audit per verified account</span>
         </div>
+        <div className="page-resource-links">
+          <a className="text-link" href="/sample-report">
+            See a sample report <ArrowUpRight size={17} aria-hidden="true" />
+          </a>
+          <a className="text-link" href="/methodology">
+            Read our methodology <ArrowUpRight size={17} aria-hidden="true" />
+          </a>
+        </div>
       </section>
       <section
         className="account-section container"
@@ -231,6 +275,13 @@ export function AuditPage() {
                 Opens your email app. We will confirm the scope before
                 proceeding.
               </p>
+              <a
+                className="text-link account-sample-link"
+                href="/sample-report"
+              >
+                Explore the report format{" "}
+                <ArrowUpRight size={17} aria-hidden="true" />
+              </a>
             </div>
             <AuditScope />
           </div>
@@ -246,6 +297,33 @@ export function AuditPage() {
                   ? "Enter the six-digit sign-in code sent to your email."
                   : "Verify your email to use your free audit and return to your saved report."}
               </p>
+              {!sent && googleAuthEnabled && (
+                <>
+                  <button
+                    type="button"
+                    className="google-sign-in"
+                    aria-label="Sign in with Google"
+                    aria-busy={googleBusy}
+                    onClick={signInWithGoogle}
+                    disabled={busy || googleBusy}
+                  >
+                    <img
+                      src="/google-sign-in.svg"
+                      width="180"
+                      height="40"
+                      alt=""
+                    />
+                  </button>
+                  {googleBusy && (
+                    <p className="form-note" role="status">
+                      Connecting to Google…
+                    </p>
+                  )}
+                  <div className="sign-in-divider">
+                    <span>or continue with email</span>
+                  </div>
+                </>
+              )}
               <form onSubmit={signIn} className="account-form">
                 <label htmlFor="audit-email">Email address</label>
                 <input
@@ -256,7 +334,7 @@ export function AuditPage() {
                   maxLength={254}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={busy || sent}
+                  disabled={busy || googleBusy || sent}
                 />
                 {sent && (
                   <>
@@ -280,7 +358,7 @@ export function AuditPage() {
                 <button
                   type="submit"
                   className="button button-dark"
-                  disabled={busy}
+                  disabled={busy || googleBusy}
                 >
                   {busy && (
                     <LoaderCircle
@@ -312,7 +390,9 @@ export function AuditPage() {
               </form>
               <p className="form-note">
                 Your email is used for sign-in and your audit account. This does
-                not subscribe you to marketing emails.
+                not subscribe you to marketing emails. Read our{" "}
+                <a href="/privacy">privacy notice</a> and{" "}
+                <a href="/terms">audit terms</a> before continuing.
               </p>
             </div>
             <AuditScope />

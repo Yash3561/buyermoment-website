@@ -25,6 +25,34 @@ const pages = [
     description:
       "Talk with ContextLumen about AI search visibility, your website, and a focused first project. Scope and fees are discussed before work begins.",
   },
+  {
+    path: "/sample-report",
+    file: "dist/sample-report/index.html",
+    title: "Explore a sample audit report | ContextLumen",
+    description:
+      "Inspect the ContextLumen report format: evidence, interpretation, priorities, and next steps. Clearly labelled fictional data, not client results.",
+  },
+  {
+    path: "/methodology",
+    file: "dist/methodology/index.html",
+    title: "Our audit and AI visibility methodology | ContextLumen",
+    description:
+      "How ContextLumen separates website readiness from measured AI mentions, citations, and recommendations. Clear evidence, denominators, and limitations.",
+  },
+  {
+    path: "/privacy",
+    file: "dist/privacy/index.html",
+    title: "Privacy notice | ContextLumen",
+    description:
+      "How ContextLumen processes website enquiries, audit accounts, public website checks, and booking information. Contact us about your information.",
+  },
+  {
+    path: "/terms",
+    file: "dist/terms/index.html",
+    title: "Website and free audit terms | ContextLumen",
+    description:
+      "The scope and limits of the ContextLumen free website audit, verified-account allowance, permitted submissions, and separately scoped paid services.",
+  },
 ];
 function escape(text) {
   return text
@@ -99,4 +127,4 @@ for (const page of pages) {
   });
   await writeFile(page.file, html);
 }
-console.log("Prerendered homepage, audit, and booking pages.");
+console.log("Prerendered " + pages.length + " public pages.");

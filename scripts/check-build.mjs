@@ -57,7 +57,12 @@ for (const [, asset] of html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)) {
 assert(html.includes('content="' + site.url + '/social-card.png"'));
 assert(robots.includes(site.url + "/sitemap.xml"));
 assert(sitemap.includes("<loc>" + site.url + "/</loc>"));
-for (const file of ["favicon.svg", "logo.svg", "social-card.png"]) {
+for (const file of [
+  "favicon.svg",
+  "logo.svg",
+  "social-card.png",
+  "google-sign-in.svg",
+]) {
   assert((await stat("dist/" + file)).size > 0, file + " must exist.");
 }
 assert.equal(
@@ -82,7 +87,15 @@ assert.equal(png.readUInt32BE(20), 630);
 console.log(
   "PASS: prerendered page, brand, domain, structured data, contact, internal links, sitemap, and 1200x630 social card.",
 );
-for (const path of ["/", "/audit", "/book"]) {
+for (const path of [
+  "/",
+  "/audit",
+  "/book",
+  "/sample-report",
+  "/methodology",
+  "/privacy",
+  "/terms",
+]) {
   const output = await readFile(
     path === "/" ? "dist/index.html" : "dist" + path + "/index.html",
     "utf8",
@@ -101,6 +114,7 @@ for (const path of ["/", "/audit", "/book"]) {
     "Route social URL missing: " + path,
   );
   assert(!output.includes("—"), "Em dash in public page: " + path);
+  assert(!/\$\s*\d/.test(output), "Public price on " + path);
   assert(
     !/Motivory|BuyerMoment|ygc2@njit.edu/.test(output),
     "Old branding on " + path,
@@ -123,6 +137,20 @@ for (const path of ["/", "/audit", "/book"]) {
 }
 const auditPage = await readFile("dist/audit/index.html", "utf8");
 const bookPage = await readFile("dist/book/index.html", "utf8");
+const samplePage = await readFile("dist/sample-report/index.html", "utf8");
+assert(
+  samplePage.includes("DEMONSTRATION DATA ONLY"),
+  "Sample must disclose fictional data.",
+);
+assert(
+  samplePage.includes("No scan was run"),
+  "Sample must not imply a live scan.",
+);
+assert(
+  !/href="https:\/\/sample\.example/.test(samplePage),
+  "Fictional sources must not become links.",
+);
+assert(samplePage.includes("Download sample (.txt)"));
 assert(auditPage.includes('id="audit-heading"'));
 assert(auditPage.includes("verified account"));
 assert(
@@ -136,5 +164,5 @@ if (site.bookingUrl)
   );
 assert(bookPage.includes("A useful first"));
 console.log(
-  "PASS: all three routes, per-page metadata, readable prerendered content, privacy-preserving calendar, and no public em dashes.",
+  "PASS: all seven routes, per-page metadata, labelled sample data, privacy-preserving calendar, and no public prices or em dashes.",
 );
