@@ -57,8 +57,29 @@ const report = (url) => ({
   requestedUrl: url,
   finalUrl: url,
   checkedAt: "2026-10-06T12:00:00Z",
-  findings: [],
-  summary: { total: 0, observed: 0, review: 0, notes: 0 },
+  scope: "Test fixture only",
+  cached: false,
+  evidence: {
+    robotsUrl: new URL("/robots.txt", url).href,
+    robotsStatus: 200,
+    redirects: [{ url, status: 200 }],
+  },
+  findings: [
+    {
+      id: "fixture",
+      title: "Fixture",
+      status: "note",
+      evidence: "Test only",
+      meaning: "Test only",
+      action: "Test only",
+      priority: 4,
+      source:
+        "https://developers.google.com/search/docs/appearance/ai-features",
+    },
+  ],
+  summary: { total: 1, observed: 0, review: 0, notes: 1 },
+  training: { agent: "GPTBot", allowedByRobots: false, note: "Test only" },
+  limitations: ["Test fixture. Not collected evidence."],
 });
 test("one account cannot run a second free audit, and can retrieve its saved report", async () => {
   let calls = 0;
@@ -111,6 +132,33 @@ test("technical failures release the allowance for a retry", async () => {
   assert(!(await failed.text()).includes("private failure"));
   assert.equal((await handler(request("retry.example"))).status, 200);
   assert.equal(calls, 2);
+});
+test("incomplete and wrong-website reports cannot be saved or consume the allowance", async () => {
+  for (const invalid of [
+    () => ({ findings: [] }),
+    () => report("https://wrong-website.example/"),
+  ]) {
+    let calls = 0;
+    const handler = createHandler(
+      async (url) => (++calls === 1 ? invalid() : report(url)),
+      ledger(),
+    );
+    const failed = await handler(
+      request("contract-retry-" + Math.random() + ".example"),
+    );
+    assert.equal(failed.status, 503);
+    assert.equal((await failed.json()).code, "AUDIT_REPORT_INVALID");
+    assert.equal(
+      (await (await handler(request("", "one", "GET"))).json()).state,
+      "available",
+    );
+    assert.equal(
+      (await handler(request("verified-retry-" + Math.random() + ".example")))
+        .status,
+      200,
+    );
+    assert.equal(calls, 2);
+  }
 });
 test("separate verified accounts have separate allowances", async () => {
   const handler = createHandler(async (url) => report(url), ledger());

@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { runAudit } from "../lib/audit.mjs";
 import { AuditError, normalizeWebsite } from "../lib/safe-fetch.mjs";
 import { AccountError, createAuditAccounts } from "../lib/audit-accounts.mjs";
+import { isReadinessReport } from "../src/lib/audit-flow.mjs";
 
 // Best-effort per-instance throttling, not a distributed quota.
 const buckets = new Map();
@@ -187,6 +188,11 @@ export function createHandler(
       const report = hit
         ? { ...hit.report, cached: true }
         : { ...(await audit(normalized)), cached: false };
+      if (!isReadinessReport(report) || report.requestedUrl !== normalized)
+        throw new AccountError(
+          "AUDIT_REPORT_INVALID",
+          "The report could not be verified. No successful audit has been recorded. Please try again or contact the team.",
+        );
       await accounts.complete(user, jobId, report);
       claimed = false;
       if (cache.size < 100)
