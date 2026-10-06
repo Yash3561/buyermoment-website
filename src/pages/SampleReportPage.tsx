@@ -1,70 +1,127 @@
-import { ArrowRight, FileSearch, ListChecks, ShieldCheck } from "lucide-react";
-import { Results } from "../components/WebsiteChecker";
-import { isReadinessReport } from "../lib/audit-flow.mjs";
-import sample from "../data/sample-report.json";
+import { ArrowRight, Check, FileSearch, ShieldCheck } from "lucide-react";
+
+const selfServeAuditAvailable = import.meta.env.VITE_AUDIT_ENABLED === "true";
+
+const checks = [
+  {
+    number: "01",
+    title: "Can the page be reached?",
+    detail: "HTTPS response, redirects, and the public crawler policy.",
+  },
+  {
+    number: "02",
+    title: "Is the offer clear in the page itself?",
+    detail: "Title, description, headings, and readable page content.",
+  },
+  {
+    number: "03",
+    title: "What should a person review next?",
+    detail: "Evidence-led findings with context and a practical action.",
+  },
+];
 
 export function SampleReportPage() {
-  if (!isReadinessReport(sample))
-    throw new Error("Invalid demonstration report.");
-  const report = sample;
   return (
     <>
-      <section className="container page-hero" aria-labelledby="sample-heading">
-        <p className="eyebrow">OPEN THE DELIVERABLE</p>
-        <h1 id="sample-heading">
-          See the finding.
+      <section className="container page-hero" aria-labelledby="audit-preview-heading">
+        <p className="eyebrow">A TRANSPARENT FIRST CHECK</p>
+        <h1 id="audit-preview-heading">
+          Know what the audit checks.
           <br />
-          Understand the next step.
+          Know what it doesn’t.
         </h1>
         <p className="page-intro">
-          An assessment should help you decide what to do, not leave you with
-          another unexplained score. Explore the evidence, interpretation, and
-          priorities below.
+          We don’t publish invented client results or pretend a checklist can
+          measure AI visibility. Here is the exact scope of the free homepage
+          check and what a real report will contain.
         </p>
         <div className="page-resource-links">
           <a className="button button-dark" href="/audit">
-            Explore your free audit <ArrowRight size={17} aria-hidden="true" />
+            {selfServeAuditAvailable
+              ? "Start your free audit"
+              : "See audit status"}{" "}
+            <ArrowRight size={17} aria-hidden="true" />
           </a>
           <a className="text-link" href="/methodology">
-            How we assess a website <ArrowRight size={17} aria-hidden="true" />
+            Read the methodology <ArrowRight size={17} aria-hidden="true" />
           </a>
         </div>
       </section>
-      <section
-        className="container sample-page"
-        aria-label="Illustrative report"
-      >
-        <aside
-          className="sample-disclosure"
-          aria-label="Demonstration data notice"
-        >
-          <ShieldCheck size={24} aria-hidden="true" />
-          <div>
-            <p className="micro">DEMONSTRATION DATA ONLY</p>
-            <h2>A sample, not a client result.</h2>
+
+      <section className="container audit-overview" aria-label="Audit scope">
+        <div className="audit-overview-copy">
+          <p className="micro">THREE THINGS, CHECKED AGAINST THE PAGE</p>
+          <h2>A useful baseline, without the mystery score.</h2>
+          <p>
+            Each finding is tied to something observable on the public site. It
+            is labelled as an observation, a point to review, or a note, so a
+            suggestion is never dressed up as a measured result.
+          </p>
+          <ol className="audit-check-list">
+            {checks.map((item) => (
+              <li key={item.number}>
+                <span>{item.number}</span>
+                <div>
+                  <h3>{item.title}</h3>
+                  <p>{item.detail}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <aside className="audit-report-card" aria-label="Report contents">
+          <div className="audit-report-topline">
+            <span className="icon-box">
+              <FileSearch size={21} aria-hidden="true" />
+            </span>
+            <span className="audit-report-tag">REPORT CONTENTS</span>
+          </div>
+          <p className="micro">YOUR PUBLIC HOMEPAGE</p>
+          <h2>What you’ll receive</h2>
+          <ul>
+            <li>
+              <Check size={17} aria-hidden="true" />
+              The page and checks included in the scan
+            </li>
+            <li>
+              <Check size={17} aria-hidden="true" />
+              Source evidence for every finding
+            </li>
+            <li>
+              <Check size={17} aria-hidden="true" />
+              Plain-language meaning and next steps
+            </li>
+            <li>
+              <Check size={17} aria-hidden="true" />
+              Limitations, including what was not measured
+            </li>
+          </ul>
+          <div className="audit-report-boundary">
+            <ShieldCheck size={19} aria-hidden="true" />
             <p>
-              This report uses a fictional business and website. No scan was
-              run, no AI visibility was measured, and no improvement is claimed.
-              It shows the format you can expect, not evidence of our results.
+              No live ChatGPT, Gemini, or Perplexity ranking is claimed. That
+              requires a separate, repeatable buyer-question study.
             </p>
           </div>
         </aside>
-        <div className="report-reading-guide">
-          <div>
-            <FileSearch size={22} aria-hidden="true" />
-            <h2>Inspect the evidence</h2>
-            <p>Open a finding to see what was checked and why it matters.</p>
-          </div>
-          <div>
-            <ListChecks size={22} aria-hidden="true" />
-            <h2>Prioritise the work</h2>
-            <p>
-              Distinguish a specific issue from a useful note or an untested
-              assumption.
-            </p>
-          </div>
+      </section>
+
+      <section className="container audit-overview-cta">
+        <div>
+          <p className="micro">
+            {selfServeAuditAvailable ? "YOUR FIRST CHECK" : "SELF-SERVICE STATUS"}
+          </p>
+          <h2>One verified account. One saved homepage audit.</h2>
+          <p>
+            The audit is designed to scan a public homepage only. It does not
+            change your website, request private code, or subscribe you to
+            marketing emails.
+          </p>
         </div>
-        <Results report={report} mode="sample" />
+        <a className="button button-dark" href="/audit">
+          Go to the audit <ArrowRight size={17} aria-hidden="true" />
+        </a>
       </section>
     </>
   );

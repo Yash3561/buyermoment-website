@@ -1,16 +1,15 @@
 # Public audit launch checklist
 
-The website has its own account system. Do not connect visitor accounts to the internal agency MCP or client evidence database. No Supabase project was created, restored, or modified during implementation.
+The website has its own account system. Do not connect visitor accounts to the internal agency MCP or client evidence database. The dedicated Supabase project `contextlumen-public-audit` (`ecqegontmlfycrxkgtyk`) was created in US East on October 6, 2026, on the $0/month tier. The free-audit ledger migration was applied. Its table has RLS enabled with no public policies; only the server-side service role can operate it.
 
 ## Provisioning and configuration
 
-1. Choose a dedicated public-website Supabase project and confirm its plan and available quota. The connected account currently showed two unrelated inactive projects on October 6, 2026. Do not silently restore or repurpose them.
-2. Apply `supabase/migrations/202610060001_free_audits.sql` through that project's SQL editor or migration workflow. Inspect migration results and permissions.
-3. Enable email sign-in and verified-email signup. Turn off anonymous sign-in. Set the production Site URL to `https://www.contextlumen.com`; allow only the intended production/test redirect URLs, never an unrestricted wildcard.
-4. Configure production email delivery. Supabase's built-in mail sender is not a general public signup solution. Use a verified custom SMTP sender or a supported provider after checking cost, SMTP access and domain authentication. Do not assume a mailbox plan includes SMTP.
-5. Change the Magic Link email template to display `{{ .Token }}` as a six-digit sign-in code. The website uses `signInWithOtp` followed by `verifyOtp` with type `email`. Leaving the default magic-link-only template does not match this UI. Test new signup and returning-user emails.
-6. Set both browser URL/anon key and server URL/service-role key in Vercel. They must refer to the SAME dedicated project. Browser config is public; the service role is server-only. Enter secrets directly in provider settings, not chat, Git, public screenshots, or a VITE variable.
-7. Keep `VITE_AUDIT_ENABLED=false` and `AUDIT_ACCOUNTS_ENABLED=false` until steps 1-6 pass. Then set both to `true`, rebuild, and run the live checks below. A missing configuration fails closed.
+1. The dedicated project exists and the ledger migration is applied. Two unrelated inactive projects were left untouched.
+2. Enable email sign-in and verified-email signup. Turn off anonymous sign-in. Set the production Site URL to `https://www.contextlumen.com`; allow only the intended production/test redirect URLs, never an unrestricted wildcard.
+3. Configure production email delivery. Supabase's built-in mail sender is not a general public signup solution. Use a verified custom SMTP sender or a supported provider after checking cost, SMTP access and domain authentication. Do not assume a mailbox plan includes SMTP.
+4. Change the Magic Link email template to display `{{ .Token }}` as a six-digit sign-in code. The website uses `signInWithOtp` followed by `verifyOtp` with type `email`. Leaving the default magic-link-only template does not match this UI. Test new signup and returning-user emails.
+5. Public browser URL and publishable key are configured in Vercel for production, preview, and development. Add the matching server URL and server-only service-role key in Vercel. Never put the service-role key in chat, Git, public screenshots, or a VITE variable.
+6. Keep `VITE_AUDIT_ENABLED=false` and `AUDIT_ACCOUNTS_ENABLED=false` until steps 2-5 pass. Then set both to `true`, rebuild, and run the live checks below. A missing configuration fails closed.
 8. Configure platform-level abuse controls and usage alerts before broad promotion. In-memory IP limits are per function instance, not distributed. Enable sign-in rate controls and consider Supabase CAPTCHA with matching UI support before a public launch. Do not enable provider CAPTCHA without adding a valid CAPTCHA token flow to this form.
 
 ## Google sign-in

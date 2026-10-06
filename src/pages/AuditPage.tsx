@@ -242,7 +242,7 @@ export function AuditPage() {
         </div>
         <div className="page-resource-links">
           <a className="text-link" href="/sample-report">
-            See a sample report <ArrowUpRight size={17} aria-hidden="true" />
+            See what the audit checks <ArrowUpRight size={17} aria-hidden="true" />
           </a>
           <a className="text-link" href="/methodology">
             Read our methodology <ArrowUpRight size={17} aria-hidden="true" />
@@ -261,25 +261,25 @@ export function AuditPage() {
               <span className="icon-box">
                 <Mail size={23} aria-hidden="true" />
               </span>
-              <h2 id="account-heading">Request your first assessment.</h2>
+              <h2 id="account-heading">Your audit is being prepared.</h2>
               <p>
-                Self-service sign-in is being prepared. For now, send us your
-                public website and what you want customers to find. We can
-                discuss a first assessment directly.
+                We’re finishing secure sign-in and saved reports before opening
+                self-service audits. You’ll be able to enter a public website,
+                review the evidence, and return to your report from the same
+                account.
               </p>
               <a className="button button-dark" href={contactEmailUrl}>
-                Ask for an assessment{" "}
+                Contact us while we finish{" "}
                 <ArrowUpRight size={17} aria-hidden="true" />
               </a>
               <p className="form-note">
-                Opens your email app. We will confirm the scope before
-                proceeding.
+                This link opens your email app. No message is sent automatically.
               </p>
               <a
                 className="text-link account-sample-link"
                 href="/sample-report"
               >
-                Explore the report format{" "}
+                Review the audit scope{" "}
                 <ArrowUpRight size={17} aria-hidden="true" />
               </a>
             </div>

@@ -28,7 +28,7 @@ const pages = [
   {
     path: "/sample-report",
     file: "dist/sample-report/index.html",
-    title: "Explore a sample audit report | ContextLumen",
+    title: "What the free homepage audit checks | ContextLumen",
     description:
       "Inspect the ContextLumen report format: evidence, interpretation, priorities, and next steps. Clearly labelled fictional data, not client results.",
   },
