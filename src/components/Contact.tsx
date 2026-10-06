@@ -1,71 +1,91 @@
-import { ArrowUpRight, CalendarDays, Mail } from "lucide-react";
+import { useState } from "react";
+import { ArrowUpRight, Check, Copy, Mail, CalendarDays } from "lucide-react";
 import { contactEmailUrl, site } from "../content";
 
 export function Contact() {
+  const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
+  async function copyEmail() {
+    try {
+      await navigator.clipboard.writeText(site.email);
+      setCopied(true);
+      setCopyError(false);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setCopyError(true);
+    }
+  }
   return (
-    <section id="contact" className="contact-section section-pad">
+    <section
+      id="contact"
+      className="contact-section section-pad"
+      aria-labelledby="contact-title"
+    >
       <div className="container contact-grid">
         <div>
-          <p className="eyebrow">LET’S FIND YOUR STARTING POINT</p>
-          <h2>
-            Start with
-            <br />a conversation<span className="accent">.</span>
+          <p className="eyebrow">LET’S TALK ABOUT YOUR WEBSITE</p>
+          <h2 id="contact-title">
+            Bring us a question.
+            <br />
+            We’ll find a starting point.
           </h2>
           <p className="contact-copy">
-            Share your website and what you want to improve. We’ll talk through
-            where we can help and what a useful first project would involve.
+            Send your website, the customers you want to reach, and the part of
+            your marketing that isn’t working. You’ll speak with the team doing
+            the work. No sales handoff.
           </p>
-          <div className="contact-detail">
-            <span className="detail-rule" />
-            <p>
-              A clear scope. Transparent fees.
-              <br />
-              Agreed together before we begin.
-            </p>
-          </div>
+          <p className="contact-terms">
+            Scope and fees are agreed before work begins.
+            <br />
+            Advertising spend is always separate.
+          </p>
         </div>
         <div className="booking-card">
-          {site.bookingUrl ? (
-            <CalendarDays size={32} strokeWidth={1.4} aria-hidden="true" />
-          ) : (
-            <Mail size={32} strokeWidth={1.4} aria-hidden="true" />
-          )}
-          <p className="micro">MEET THE {site.name.toUpperCase()} TEAM</p>
-          <h3>Let’s talk about your business.</h3>
+          <div className="contact-card-heading">
+            <span className="icon-box">
+              {site.bookingUrl ? (
+                <CalendarDays size={22} aria-hidden="true" />
+              ) : (
+                <Mail size={22} aria-hidden="true" />
+              )}
+            </span>
+            <span className="micro">YOUR FIRST CONVERSATION</span>
+          </div>
+          <h3>A useful place to start.</h3>
           <p>
-            {site.bookingUrl
-              ? "Choose a time on our calendar. We’ll use the meeting to understand your priorities and discuss a proposal that fits."
-              : "Tell us a little about your business and what you’re working on. We’ll arrange a time to talk through your goals, scope, and pricing."}
+            Tell us what you’re trying to achieve. We’ll discuss whether a
+            focused search visibility pilot is the right fit.
           </p>
-          {site.bookingUrl ? (
-            <a
-              className="button button-accent"
-              href={site.bookingUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+          <a className="button button-accent" href="/book">
+            Book a conversation
+            <ArrowUpRight size={18} aria-hidden="true" />
+          </a>
+          <div className="contact-email-row">
+            <a href={contactEmailUrl}>{site.email}</a>
+            <button
+              className="copy-button"
+              type="button"
+              onClick={copyEmail}
+              aria-label="Copy email address"
             >
-              Book now <ArrowUpRight size={19} aria-hidden="true" />
-            </a>
-          ) : (
-            <>
-              <a className="button button-accent" href={contactEmailUrl}>
-                Email us <ArrowUpRight size={19} aria-hidden="true" />
-              </a>
-              <p className="form-note">
-                <a href={contactEmailUrl}>{site.email}</a>
-                <br />
-                Opens your email app. Prefer webmail? Copy the address above.
-              </p>
-            </>
-          )}
-          {site.bookingUrl && (
-            <p className="form-note">
-              Opens our scheduling page in a new tab. Booking a call does not
-              commit you to a project.
-            </p>
-          )}
+              {copied ? (
+                <Check size={16} aria-hidden="true" />
+              ) : (
+                <Copy size={16} aria-hidden="true" />
+              )}
+            </button>
+          </div>
+          <p className="form-note" aria-live="polite">
+            {copied
+              ? "Email address copied."
+              : copyError
+                ? "Please select and copy the email address above."
+                : site.bookingUrl
+                  ? "Choose a time on our booking page. No commitment to a project."
+                  : "See meeting details or request a time by email."}
+          </p>
           <a className="booking-privacy" href="#privacy">
-            Privacy & contact
+            How we handle enquiries
           </a>
         </div>
       </div>

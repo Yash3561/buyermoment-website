@@ -1,10 +1,32 @@
-// Update the inbox only after the domain mailbox can send and receive email.
+// Public contact address. Mailbox delivery is managed by the email provider.
 export const site = {
   name: "ContextLumen",
   url: "https://www.contextlumen.com",
-  email: "ygc2@njit.edu",
-  bookingUrl: "", // Set to the team's verified scheduling URL.
+  email: "yashchaudhary@contextlumen.com",
+  bookingUrl: calendarUrl(
+    import.meta.env.VITE_CALENDLY_URL ??
+      "https://calendly.com/yashchaudhary3561/30min",
+  ),
 };
+
+function calendarUrl(value: unknown): string {
+  if (typeof value !== "string" || !value) return "";
+  try {
+    const url = new URL(value);
+    if (
+      url.protocol !== "https:" ||
+      !["calendly.com", "www.calendly.com"].includes(url.hostname) ||
+      url.username ||
+      url.password ||
+      url.port ||
+      !/^\/[^/]+\/[^/]+\/?$/.test(url.pathname)
+    )
+      return "";
+    return url.origin + url.pathname;
+  } catch {
+    return "";
+  }
+}
 
 export const contactEmailUrl =
   "mailto:" +
@@ -13,7 +35,7 @@ export const contactEmailUrl =
   encodeURIComponent("A conversation with " + site.name) +
   "&body=" +
   encodeURIComponent(
-    "Hi ContextLumen,\n\nOur website: \nWhat we would like help with: \n\nBest,\n",
+    "Hi Yash,\n\nOur website: \nWho we want to reach: \nWhat we would like help with: \n\nA good time to talk: \n\nBest,\n",
   );
 
 export const examples = [
@@ -61,21 +83,21 @@ export const examples = [
 export const deliverables = [
   {
     number: "01",
-    title: "Know where you stand.",
+    title: "A baseline you can inspect",
     description:
       "A dated baseline of relevant search questions, the answers we observe, and the sources they cite. Clear findings, with the evidence attached.",
     detail: "Baseline & opportunity report",
   },
   {
     number: "02",
-    title: "Put the findings to work.",
+    title: "Changes ready for review",
     description:
       "Prioritised content, technical, and messaging improvements. We agree the scope with your team and help carry the work through.",
     detail: "Approved improvements & implementation",
   },
   {
     number: "03",
-    title: "See what changed.",
+    title: "A comparison, not a promise",
     description:
       "Repeat the agreed checks and compare results. You receive a record of what shipped, what moved, and what deserves attention next.",
     detail: "Before-and-after review & next steps",
