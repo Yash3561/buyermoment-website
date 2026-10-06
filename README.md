@@ -7,8 +7,11 @@ Service-first AI search visibility, website improvements, and campaign research.
 - `/`: services, concrete illustrative work, deliverables, process, FAQs and contact.
 - `/audit`: evidence-based homepage readiness check, verified-email account flow and one successful free audit per account.
 - `/book`: opt-in Calendly embed with an external calendar link and email fallback.
+- `/sample-report`: interactive fictional report with explicit demonstration labels, evidence and a labelled text export.
+- `/methodology`: readiness scope, AI visibility measurement definitions and comparison limitations.
+- `/privacy` and `/terms`: public account, data-processing and free-audit boundaries.
 
-All three pages are prerendered with page-specific metadata and shared navigation. The public audit does not measure live AI mentions or award a visibility score. Sign-in stays disabled until the dedicated backend is configured.
+All seven pages are prerendered with page-specific metadata and shared navigation. The public audit does not measure live AI mentions or award a visibility score. Sign-in stays disabled until the dedicated backend is configured. Google OAuth support is separately gated and must pass the [launch checklist](docs/audit-launch.md) before enabling it.
 
 ## Development
 
@@ -25,6 +28,8 @@ npm run preview
 Run the API and frontend in separate terminals. Frontend: http://127.0.0.1:4173. The build type-checks, bundles client/server code, and prerenders each route into dist.
 
 If Windows denies Vite's esbuild child process with EPERM, do not disable security protections. Use an authorized build environment or the Vercel preview build. The native-esbuild source preview is a diagnostic fallback, not proof that the production Vite build passed.
+
+On Node 24, `node --test --test-isolation=none tests/*.test.mjs` runs the same tests without child-process isolation when the machine denies the test runner's process spawning. CI should still run the normal `npm test`, production build and build checks. `node scripts/qa-server.mjs 4183` can serve already prepared diagnostic artifacts on a separate loopback port without stopping an existing development server.
 
 ## Deployment and accounts
 
@@ -50,5 +55,6 @@ Contact email: yashchaudhary@contextlumen.com. Mailto links open a draft; no mes
 - scripts/: prerender, build/live checks and diagnostic utilities
 - tests/: scanner, endpoint and account tests
 - public/logo.svg: single mark reused in navigation, footer, favicon and generated social card
+- public/google-sign-in.svg: unmodified Google-provided sign-in button; not a ContextLumen brand asset
 
 See [checker methodology](docs/checker-method.md), [domain setup](docs/domain-setup.md), and [contact setup](docs/contact-setup.md). Historical .openai/hosting.json is not used by Vercel.

@@ -10,7 +10,8 @@ import {
   FileText,
   ShieldCheck,
 } from "lucide-react";
-import { site } from "../content";
+import { site, contactEmailUrl } from "../content";
+import { isReadinessReport } from "../lib/audit-flow.mjs";
 
 type Finding = {
   id: string;
@@ -39,10 +40,16 @@ export type Report = {
   training: { agent: string; allowedByRobots: boolean; note: string };
   limitations: string[];
 };
-function download(report: Report) {
+function download(report: Report, sample = false) {
   const text = [
+    ...(sample
+      ? [
+          "DEMONSTRATION DATA ONLY. No scan, client result, or measured improvement.",
+          "",
+        ]
+      : []),
     "ContextLumen | AEO/GEO readiness check",
-    "Checked: " + report.checkedAt,
+    (sample ? "Example date: " : "Checked: ") + report.checkedAt,
     "Website: " + report.finalUrl,
     "Scope: " + report.scope,
     "Method: " + report.version,
@@ -72,12 +79,20 @@ function download(report: Report) {
   );
   const anchor = document.createElement("a");
   anchor.href = href;
-  anchor.download =
-    "contextlumen-" + new URL(report.finalUrl).hostname + "-readiness.txt";
+  anchor.download = sample
+    ? "contextlumen-sample-report.txt"
+    : "contextlumen-" + new URL(report.finalUrl).hostname + "-readiness.txt";
   anchor.click();
   setTimeout(() => URL.revokeObjectURL(href), 1000);
 }
-export function Results({ report }: { report: Report }) {
+export function Results({
+  report,
+  mode = "live",
+}: {
+  report: Report;
+  mode?: "live" | "sample";
+}) {
+  const sample = mode === "sample";
   const priorities = report.findings
     .filter((f) => f.status === "review")
     .sort((a, b) => a.priority - b.priority)
@@ -107,22 +122,32 @@ export function Results({ report }: { report: Report }) {
     <div className="checker-results">
       <div className="report-heading">
         <div>
-          <span className="micro">YOUR HOMEPAGE SNAPSHOT</span>
+          <span className="micro">
+            {sample
+              ? "ILLUSTRATIVE REPORT / FICTIONAL WEBSITE"
+              : "YOUR HOMEPAGE SNAPSHOT"}
+          </span>
           <h3>{new URL(report.finalUrl).hostname}</h3>
           <p>
-            {new Date(report.checkedAt).toLocaleString("en-US", {
-              dateStyle: "medium",
-              timeStyle: "short",
-            })}
-            {report.cached ? " · Cached when checked" : " · Homepage snapshot"}
+            {sample
+              ? "Demonstration data. No live scan was run."
+              : new Date(report.checkedAt).toLocaleString("en-US", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+            {!sample &&
+              (report.cached
+                ? " · Cached when checked"
+                : " · Homepage snapshot")}
           </p>
         </div>
         <button
           type="button"
           className="button button-outline report-download"
-          onClick={() => download(report)}
+          onClick={() => download(report, sample)}
         >
-          <Download size={17} aria-hidden="true" /> Download report
+          <Download size={17} aria-hidden="true" />{" "}
+          {sample ? "Download sample (.txt)" : "Download report (.txt)"}
         </button>
       </div>
       <div className="report-counts">
@@ -139,7 +164,10 @@ export function Results({ report }: { report: Report }) {
           <span>informational notes</span>
         </div>
         <p>
-          {report.summary.total} checks in our published checklist.
+          {report.summary.total}{" "}
+          {sample
+            ? "illustrative findings, not scan results."
+            : "checks in this report."}
           <br />
           Not a percentage of AI visibility.
         </p>
@@ -240,24 +268,37 @@ export function Results({ report }: { report: Report }) {
           </p>
           <p>
             <strong>Source:</strong>{" "}
-            <a href={report.finalUrl} target="_blank" rel="noopener noreferrer">
-              {report.finalUrl}
-            </a>{" "}
-            ·{" "}
-            <a
-              href={report.evidence.robotsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              robots.txt
-            </a>{" "}
-            (HTTP {report.evidence.robotsStatus}).
+            {sample ? (
+              <span>sample.example (fictional). No source was fetched.</span>
+            ) : (
+              <>
+                <a
+                  href={report.finalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {report.finalUrl}
+                </a>{" "}
+                ·{" "}
+                <a
+                  href={report.evidence.robotsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  robots.txt
+                </a>{" "}
+                (HTTP {report.evidence.robotsStatus}).
+              </>
+            )}
           </p>
           <p>
-            <strong>Method:</strong> {report.version}. Counts are unweighted
-            checklist results, not a platform score. Missing JSON-LD is
-            informational, not an automatic failure. The 80-word threshold is a
-            screening heuristic.
+            <strong>Method:</strong> {report.version}.{" "}
+            {sample
+              ? "These are fictional examples, not completed automated checks. "
+              : ""}
+            Counts are unweighted checklist results, not a platform score.
+            Missing JSON-LD is informational, not an automatic failure. The
+            80-word threshold is a screening heuristic.
           </p>
           <p>
             <strong>Training:</strong> {report.training.agent} is{" "}
@@ -270,7 +311,11 @@ export function Results({ report }: { report: Report }) {
             ))}
           </ul>
           <p>
-            <strong>Homepage redirect trace:</strong>{" "}
+            <strong>
+              {sample
+                ? "Illustrative redirect trace:"
+                : "Homepage redirect trace:"}
+            </strong>{" "}
             {report.evidence.redirects
               .map((h) => h.status + " " + h.url)
               .join(" → ")}
@@ -287,8 +332,12 @@ export function Results({ report }: { report: Report }) {
             before making changes.
           </p>
         </div>
-        <a className="button button-dark" href={email}>
-          Discuss my results <ArrowUpRight size={17} aria-hidden="true" />
+        <a
+          className="button button-dark"
+          href={sample ? contactEmailUrl : email}
+        >
+          {sample ? "Discuss a first project" : "Discuss my results"}{" "}
+          <ArrowUpRight size={17} aria-hidden="true" />
         </a>
       </div>
     </div>
@@ -333,7 +382,7 @@ export function WebsiteChecker({
           data.error ||
             "We couldn't complete the check. No score has been assigned.",
         );
-      if (!data.findings || !data.checkedAt || !data.finalUrl)
+      if (!isReadinessReport(data))
         throw new Error(
           "The checker returned an incomplete report. Please try again.",
         );

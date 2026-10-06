@@ -17,6 +17,9 @@ import { Contact } from "./components/Contact";
 import { BookingLink } from "./components/BookingLink";
 import { AuditPage } from "./pages/AuditPage";
 import { BookPage } from "./pages/BookPage";
+import { SampleReportPage } from "./pages/SampleReportPage";
+import { MethodologyPage } from "./pages/MethodologyPage";
+import { PolicyPage } from "./pages/PolicyPage";
 import { deliverables, faqs, site } from "./content";
 
 function Hero() {
@@ -38,9 +41,12 @@ function Hero() {
             belongs in the conversation.
           </p>
           <div className="hero-actions">
-            <BookingLink className="button button-dark" />
-            <a className="text-link" href="/audit">
-              Check your website <ArrowRight size={17} aria-hidden="true" />
+            <a className="button button-dark" href="/audit">
+              Explore your free audit{" "}
+              <ArrowRight size={17} aria-hidden="true" />
+            </a>
+            <a className="text-link" href="/sample-report">
+              View a sample report <ArrowRight size={17} aria-hidden="true" />
             </a>
           </div>
           <p className="hero-footnote">
@@ -288,6 +294,12 @@ function TheWork() {
             );
           })}
         </div>
+        <div className="work-report-link">
+          <p>See how a finding becomes a practical next step.</p>
+          <a className="text-link" href="/sample-report">
+            Open the sample report <ArrowRight size={17} aria-hidden="true" />
+          </a>
+        </div>
       </div>
     </section>
   );
@@ -354,11 +366,20 @@ function Process() {
             <BrandMark />
             <span className="micro">A SMALL TEAM. DIRECT ACCOUNTABILITY.</span>
           </div>
-          <p>
-            Founded by NJIT alumni with an AI engineering background. The people
-            researching your business are the people working on the
-            improvements.
-          </p>
+          <div className="team-description">
+            <p>
+              Founded by NJIT alumni with an AI engineering background. The
+              people researching your business are the people working on the
+              improvements.
+            </p>
+            <a className="text-link" href={"mailto:" + site.email}>
+              Talk directly with Yash Chaudhary{" "}
+              <ArrowUpRight size={16} aria-hidden="true" />
+            </a>
+            <p className="team-affiliation-note">
+              Independent agency. Not affiliated with or endorsed by NJIT.
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -422,7 +443,11 @@ function Footer() {
         <div className="footer-bottom">
           <span>© 2026 {site.name}</span>
           <a href={"mailto:" + site.email}>{site.email}</a>
-          <a href="#privacy">Privacy & contact</a>
+          <nav aria-label="Footer">
+            <a href="/methodology">Methodology</a>
+            <a href="/privacy">Privacy</a>
+            <a href="/terms">Audit terms</a>
+          </nav>
         </div>
         <details className="privacy-details" id="privacy">
           <summary>Privacy & contact</summary>
@@ -440,7 +465,7 @@ function Footer() {
             or follow its external link. Please don’t send credentials or
             confidential client information. Contact{" "}
             <a href={"mailto:" + site.email}>{site.email}</a> with a privacy
-            question.
+            question. <a href="/privacy">Read the full privacy notice.</a>
           </p>
         </details>
       </div>
@@ -504,6 +529,12 @@ export default function App({ path = "/" }: { path?: string }) {
           <AuditPage />
         ) : page === "/book" ? (
           <BookPage />
+        ) : page === "/sample-report" ? (
+          <SampleReportPage />
+        ) : page === "/methodology" ? (
+          <MethodologyPage />
+        ) : page === "/privacy" || page === "/terms" ? (
+          <PolicyPage kind={page === "/privacy" ? "privacy" : "terms"} />
         ) : (
           <section className="container page-hero">
             <p className="eyebrow">PAGE NOT FOUND</p>

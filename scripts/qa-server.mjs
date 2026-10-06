@@ -2,6 +2,9 @@ import http from "node:http";
 import { readFile } from "node:fs/promises";
 import { resolve, sep } from "node:path";
 import { createHandler } from "../api/check.js";
+const port = Number(process.argv[2] || 4173);
+if (!Number.isInteger(port) || port < 1024 || port > 65535)
+  throw new Error("Choose a local preview port between 1024 and 65535.");
 const api = createHandler();
 const types = {
   ".js": "text/javascript",
@@ -14,7 +17,7 @@ const types = {
 http
   .createServer(async (req, res) => {
     try {
-      const url = new URL(req.url, "http://127.0.0.1:4173");
+      const url = new URL(req.url, "http://127.0.0.1:" + port);
       if (url.pathname === "/api/check") {
         let size = 0;
         const chunks = [];
@@ -40,11 +43,20 @@ http
         res.end(Buffer.from(await response.arrayBuffer()));
         return;
       }
-      if (["/", "/audit", "/book"].includes(url.pathname)) {
+      const path = url.pathname.replace(/\/+$/, "") || "/";
+      if (
+        [
+          "/",
+          "/audit",
+          "/book",
+          "/sample-report",
+          "/methodology",
+          "/privacy",
+          "/terms",
+        ].includes(path)
+      ) {
         const file =
-          url.pathname === "/"
-            ? "dist/index.html"
-            : "dist" + url.pathname + "/index.html";
+          path === "/" ? "dist/index.html" : "dist" + path + "/index.html";
         res.writeHead(200, {
           "Content-Type": "text/html; charset=utf-8",
           "Cache-Control": "no-store",
@@ -72,6 +84,6 @@ http
       res.end("Not found");
     }
   })
-  .listen(4173, "127.0.0.1", () =>
-    console.log("Artifact QA preview: http://127.0.0.1:4173"),
+  .listen(port, "127.0.0.1", () =>
+    console.log("Artifact QA preview: http://127.0.0.1:" + port),
   );

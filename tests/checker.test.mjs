@@ -352,13 +352,13 @@ test("API error responses are safe and successful reports are cached with origin
   let calls = 0;
   const handler = createHandler(async () => {
     calls++;
-    return {
-      version: "test",
-      checkedAt: "fixed",
-      findings: [],
-      requestedUrl: "https://cache.example/",
-      finalUrl: "https://cache.example/",
-    };
+    const url = "https://cache.example/";
+    return analysePage(
+      { ...page(validHtml), url, trace: [{ url, status: 200 }] },
+      { ...robots(), url: url + "robots.txt" },
+      new URL(url),
+      new Date("2026-10-06T12:00:00Z"),
+    );
   });
   const first = await handler(req({ url: "cache.example" }));
   const second = await handler(req({ url: "cache.example" }));
