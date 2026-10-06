@@ -1,42 +1,54 @@
-# Motivory
+# ContextLumen
 
-The service website for a seven-day customer research and campaign-planning sprint.
+The service website for ContextLumen: AI search visibility, customer research, website messaging, and campaign planning.
 
 ## Stack
 
-React 19, TypeScript, Vite, Lucide icons, and a custom responsive CSS system. Production output is prerendered HTML and static assets: the service copy and booking links are readable before JavaScript loads, then React hydrates the menu and example switcher.
+React 19, TypeScript, Vite, Lucide icons, and a custom responsive CSS system. Production output is prerendered HTML and static assets: the copy and contact links are readable before JavaScript loads, then React hydrates the menu and example switcher.
 
 ## Development
 
 ```sh
 npm ci
 npm run dev
+npm run build
+npm run check
+npm run preview
 ```
 
-Local preview: http://127.0.0.1:4173. Run `npm run build` for type checking, client and server builds, and homepage prerendering. `npm run preview` serves the production build.
+The local server uses http://127.0.0.1:4173. The production build runs type checking, client and server compilation, and homepage prerendering. The build check validates the rendered brand, structured data, canonical URL, internal links, contact destination, and social assets.
+
+## Deployment
+
+Deploy the existing GitHub repository on Vercel using Vite, `npm run build`, and `dist` as the output directory. The repository name can remain `buyermoment-website`; it does not appear in the customer-facing brand.
+
+The primary domain is `https://contextlumen.com`. See [Domain setup](docs/domain-setup.md) for Vercel and Spaceship configuration, DNS precautions, and mailbox setup. Buying the domain alone does not make it live.
+
+The existing `.openai/hosting.json` is historical Sites deployment metadata and is not used by Vercel.
 
 ## Project structure
 
 - `src/App.tsx`: page sections and composition.
-- `src/components/`: brand, navigation, interactive evidence example, and contact flow.
-- `src/content.ts`: brand details, example content, FAQs, and booking configuration.
-- `src/styles.css`: colour tokens, typography, responsive layouts, reduced-motion support.
-- `scripts/prerender.mjs`: writes the rendered React page into the built HTML entry point.
-- `.openai/hosting.json`: identity of the existing Sites deployment; assets publish from `dist/`.
+- `src/components/`: brand, navigation, illustrative example switcher, and contact flow.
+- `src/content.ts`: central brand, domain, email, FAQs, examples, and scheduling configuration.
+- `src/styles.css`: design tokens, responsive layouts, focus states, and reduced-motion support.
+- `scripts/prerender.mjs`: rendered homepage and Organization/WebSite structured data.
+- `scripts/check-build.mjs`: production output validation.
+- `public/`: CL brand assets, social preview, robots file, and sitemap.
+- `vercel.json`: build settings, www redirect, and baseline response headers.
 
-## Contact setup
+## Contact
 
-Set `site.bookingUrl` in `src/content.ts` to the team's verified Calendly event URL. This connects the header, hero, consultation, and final booking buttons to the same event in a new tab. No API key or Calendly script is required.
+All consultation buttons currently open an email draft to `ygc2@njit.edu`. Sending it remains the visitor's choice; the website does not submit or store enquiries.
 
-Until a booking URL is supplied, all primary calls to action open an email draft addressed to `ygc2@njit.edu`, with a Motivory enquiry subject. The contact section also displays the address for visitors who prefer webmail. Sending the email is up to the visitor; the website does not submit or store enquiries. Once configured, booking completion and confirmation are handled by Calendly.
+Set `site.bookingUrl` in `src/content.ts` to a verified scheduling URL when ready. Buttons then open that URL in a new tab. No scheduler API key is required. Update `site.email` only after the company mailbox can receive mail.
 
-## Commercial and design decisions
+## Brand and commercial principles
 
-- Motivory is the approved service name. The existing GitHub repository and hosted URL keep their original identifiers.
-- No public rates or starting prices. Scope, timing, and fees are discussed in the consultation and confirmed in a written proposal.
-- Research and planning are included. Media spend, creative production, management, and optional AI-search work are separately scoped.
-- All example conversations are clearly labelled as illustrative. No invented testimonials, results, customers, platform partnerships, or scarcity claims.
-- ChatGPT advertising is described as dependent on advertiser access and fit; there is no promise of universal placement.
-- Website access remains as configured in Sites. Confirm the public audience and contact destination before sending this site to prospects.
-
-See `docs/design-references.md` for the reference research and original visual direction.
+- ContextLumen pairs understanding the buyer's context with bringing the opportunity into focus.
+- Ivory, deep charcoal, warm amber, editorial typography, and a custom CL mark form the visual identity.
+- No public prices: scope, timing, and fees are confirmed in a written proposal.
+- Paid campaign work depends on account access, approvals, and separately budgeted media spend.
+- Examples are clearly illustrative, not case studies. No invented customers, testimonials, results, platform partnerships, or ranking guarantees.
+- Visibility reporting uses documented samples and dates. Changes to AI answers are not automatically attributable to our work.
+- Client implementation requires approval; confidential customer information should not be included in the initial email.

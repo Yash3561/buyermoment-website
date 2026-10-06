@@ -9,7 +9,8 @@ export function BookingLink({ className }: { className: string }) {
       target={site.bookingUrl ? "_blank" : undefined}
       rel={site.bookingUrl ? "noopener noreferrer" : undefined}
     >
-      {site.bookingUrl ? "Book a call" : "Let’s talk"} <ArrowUpRight size={18} aria-hidden="true" />
+      {site.bookingUrl ? "Book a call" : "Let’s talk"}{" "}
+      <ArrowUpRight size={18} aria-hidden="true" />
     </a>
   );
 }

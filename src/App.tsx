@@ -2,10 +2,9 @@ import {
   ArrowUpRight,
   ArrowRight,
   Check,
-  MessageSquareText,
-  ScanLine,
+  Search,
   FileText,
-  MoveUpRight,
+  ChartNoAxesCombined,
 } from "lucide-react";
 import { Header } from "./components/Header";
 import { Brand } from "./components/Brand";
@@ -20,128 +19,186 @@ function Hero() {
       <div className="container hero-grid">
         <div className="hero-copy">
           <p className="eyebrow">
-            <span className="eyebrow-line" />
-            CUSTOMER RESEARCH. CAMPAIGN DIRECTION.
+            <span className="eyebrow-line" /> AI SEARCH & GROWTH
           </p>
           <h1 id="hero-title">
-            Find the reason
+            Make your business
             <br />
-            they{" "}
-            <span className="hero-buy">
-              buy
-              <svg viewBox="0 0 210 18" aria-hidden="true">
-                <path d="M3 12C48 3 107 2 204 6M22 16C78 8 141 8 187 10" />
-              </svg>
-            </span>
-            <span className="lime">.</span>
+            easier to find.
+            <br />
+            <em>Easier to choose.</em>
           </h1>
           <p className="hero-description">
-            Your next campaign is hiding in your customer conversations. We find
-            the message, shape the angles, and map out what to test.
+            Your customers are asking new questions, in new places. We help your
+            website, content, and messaging give them a better answer.
           </p>
           <div className="hero-actions">
-            <BookingLink className="button button-lime" />
+            <BookingLink className="button button-dark" />
             <a className="text-link" href="#the-work">
-              See the work <ArrowRight size={17} aria-hidden="true" />
+              Explore the work <ArrowRight size={17} aria-hidden="true" />
             </a>
           </div>
           <p className="hero-footnote">
-            A hands-on, seven-day sprint. Built around your business.
+            A focused first project. A scope built around your business.
           </p>
         </div>
         <div
-          className="hero-brief"
-          aria-label="Illustration of a buyer insight"
+          className="hero-visual"
+          aria-label="Illustrative diagram connecting a buyer question to useful sources and a plan"
         >
-          <div className="brief-top">
-            <span className="micro">BUYER NOTE / 001</span>
-            <span className="micro">ILLUSTRATIVE</span>
+          <div className="visual-top">
+            <span className="micro">CONTEXT, BROUGHT TO LIGHT</span>
+            <span className="visual-dot" aria-hidden="true" />
           </div>
-          <div className="brief-quote">
-            <span className="quote-mark" aria-hidden="true">
-              “
-            </span>
+          <div className="question-note">
+            <Search size={19} aria-hidden="true" />
             <p>
-              I know what it does.
-              <br />I need to know
+              “Which solution is right
               <br />
-              <mark>why it’s right for me.</mark>
+              for a business like mine?”
             </p>
           </div>
-          <div className="brief-annotation">
-            <span className="hand-line" aria-hidden="true" />
-            <span>There’s your starting point.</span>
+          <div className="light-field" aria-hidden="true">
+            <svg viewBox="0 0 460 180" fill="none">
+              <defs>
+                <linearGradient
+                  id="light-gradient"
+                  x1="230"
+                  y1="0"
+                  x2="230"
+                  y2="175"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop stopColor="#edc38b" stopOpacity=".9" />
+                  <stop offset="1" stopColor="#edc38b" stopOpacity=".05" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M230 0L43 174H417L230 0Z"
+                fill="url(#light-gradient)"
+                opacity=".12"
+              />
+              <path
+                d="M230 0V167M230 0L72 167M230 0L388 167"
+                stroke="url(#light-gradient)"
+              />
+              <ellipse
+                cx="230"
+                cy="143"
+                rx="166"
+                ry="30"
+                stroke="#ffffff"
+                strokeOpacity=".1"
+              />
+              <ellipse
+                cx="230"
+                cy="111"
+                rx="129"
+                ry="24"
+                stroke="#ffffff"
+                strokeOpacity=".07"
+              />
+              <circle
+                cx="230"
+                cy="80"
+                r="29"
+                fill="#242b2b"
+                stroke="#edc38b"
+                strokeOpacity=".65"
+              />
+              <path
+                d="M243 69A17 17 0 1 0 243 91M239 86H243V91"
+                stroke="#edc38b"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M251 68V81H260"
+                stroke="#edc38b"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle cx="72" cy="167" r="4" fill="#edc38b" />
+              <circle cx="230" cy="167" r="4" fill="#edc38b" />
+              <circle cx="388" cy="167" r="4" fill="#edc38b" />
+            </svg>
           </div>
-          <div className="brief-bottom">
-            <span>
-              From something said.
+          <div className="signal-labels">
+            <span>Useful content</span>
+            <span>Credible sources</span>
+            <span>Clear messaging</span>
+          </div>
+          <div className="visual-bottom">
+            <span className="micro">THE STARTING POINT</span>
+            <p>
+              Understand the question.
               <br />
-              <strong>To something worth testing.</strong>
-            </span>
-            <span className="brief-arrow">
-              <MoveUpRight size={30} strokeWidth={1.25} aria-hidden="true" />
-            </span>
+              <strong>Make the next step clear.</strong>
+            </p>
+            <span className="visual-example">Illustrative</span>
           </div>
-          <span className="brief-stamp">
-            READ BETWEEN
-            <br />
-            THE LINES.
-          </span>
         </div>
       </div>
       <div className="container hero-bottom">
-        <span>THE INPUT IS ALREADY THERE</span>
+        <span>WHERE WE CAN HELP</span>
         <div>
-          <span>Sales calls</span>
-          <span>Customer reviews</span>
-          <span>Support conversations</span>
-          <span>Interview notes</span>
+          <span>AI search visibility</span>
+          <span>Website & content</span>
+          <span>Customer research</span>
+          <span>Campaign direction</span>
         </div>
       </div>
     </section>
   );
 }
+
 function Approach() {
   return (
     <section id="approach" className="approach-section section-pad">
       <div className="container">
         <div className="section-heading">
-          <p className="eyebrow">01 / THE APPROACH</p>
+          <p className="eyebrow">01 / START WITH CONTEXT</p>
           <div>
             <h2>
-              Before you spend more,
+              What are your customers
               <br />
-              understand <em>what matters.</em>
+              <em>really looking for?</em>
             </h2>
             <p>
-              Customers tell you why they hesitate, what they compare, and what
-              finally makes them choose. Those details should shape the next
-              campaign.
+              Someone comparing solutions needs more than a list of features.
+              They need to understand whether your business fits their
+              situation, and why they should trust it.
             </p>
           </div>
         </div>
         <div className="approach-grid">
           <div className="approach-text">
             <h3>
-              Less guessing.
-              <br />A better starting point.
+              The question shapes
+              <br />
+              the work.
             </h3>
             <p>
-              We read the material your team already has, look for recurring
-              patterns, and turn them into a clear creative direction.
+              We look at your website, the questions buyers ask, and the
+              evidence your team already has. Then we identify where the answer
+              is missing, unclear, or hard to find.
             </p>
             <p>
-              You see the evidence behind the recommendation—and the questions
-              that still need an answer.
+              That gives us a practical place to start: the right page, a
+              stronger explanation, or a message worth testing.
             </p>
-            <a className="text-link dark-link" href="#consultation">
-              Explore the sprint <ArrowUpRight size={18} aria-hidden="true" />
+            <a className="text-link" href="#consultation">
+              Talk through your priorities{" "}
+              <ArrowUpRight size={18} aria-hidden="true" />
             </a>
             <div className="approach-note">
               <span className="micro">OUR WORKING PRINCIPLE</span>
               <p>
-                Every angle should have
-                <br />a reason behind it.
+                A recommendation should
+                <br />
+                have a reason behind it.
               </p>
             </div>
           </div>
@@ -151,31 +208,106 @@ function Approach() {
     </section>
   );
 }
+
+function Services() {
+  return (
+    <section id="services" className="services-section section-pad">
+      <div className="container services-grid">
+        <div className="services-intro">
+          <p className="eyebrow">02 / CONNECT THE WORK</p>
+          <h2>
+            From discovery
+            <br />
+            <em>to a decision.</em>
+          </h2>
+          <p>
+            We bring research, search, and messaging together around the people
+            you want to reach.
+          </p>
+        </div>
+        <div className="service-list">
+          <article>
+            <span className="service-number">01</span>
+            <div>
+              <span className="micro">AEO / GEO</span>
+              <h3>AI search visibility</h3>
+              <p>
+                Find the questions that matter, inspect the answers and
+                citations, and improve the public information that helps buyers
+                understand your business.
+              </p>
+              <div className="service-tags">
+                <span>Search baselines</span>
+                <span>Content & technical reviews</span>
+              </div>
+            </div>
+            <Search size={22} aria-hidden="true" />
+          </article>
+          <article>
+            <span className="service-number">02</span>
+            <div>
+              <span className="micro">RESEARCH / CONTENT</span>
+              <h3>A clearer reason to choose you</h3>
+              <p>
+                Use customer conversations, reviews, and product evidence to
+                strengthen your pages, explain your offer, and address the
+                questions that hold a purchase back.
+              </p>
+              <div className="service-tags">
+                <span>Buyer research</span>
+                <span>Website messaging</span>
+              </div>
+            </div>
+            <FileText size={22} aria-hidden="true" />
+          </article>
+          <article>
+            <span className="service-number">03</span>
+            <div>
+              <span className="micro">STRATEGY / CAMPAIGNS</span>
+              <h3>A better-informed next campaign</h3>
+              <p>
+                Turn the research into campaign angles, landing-page direction,
+                and a measurement plan. Scope paid campaign support around your
+                account access and budget.
+              </p>
+              <div className="service-tags">
+                <span>Campaign planning</span>
+                <span>Implementation support</span>
+              </div>
+            </div>
+            <ChartNoAxesCombined size={22} aria-hidden="true" />
+          </article>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Deliverables() {
   return (
     <section id="the-work" className="deliverables-section section-pad">
       <div className="container">
         <div className="section-heading">
-          <p className="eyebrow">02 / WHAT YOU TAKE AWAY</p>
+          <p className="eyebrow">03 / WHAT YOU RECEIVE</p>
           <div>
             <h2>
-              Useful work.
+              A clear record.
               <br />
-              Ready for your next move.
+              <em>Work you can use.</em>
             </h2>
             <p>
-              A focused set of deliverables your founder, marketer, or creative
-              team can actually put to work.
+              You should be able to see what we found, understand what we
+              recommend, and know exactly what changed.
             </p>
           </div>
         </div>
         <div className="deliverable-grid">
           {deliverables.map((item, i) => {
-            const Icon = [MessageSquareText, ScanLine, FileText][i];
+            const Icon = [Search, FileText, ChartNoAxesCombined][i];
             return (
               <article className="deliverable-card" key={item.number}>
                 <div className="deliverable-top">
-                  <Icon size={26} strokeWidth={1.4} aria-hidden="true" />
+                  <Icon size={25} strokeWidth={1.5} aria-hidden="true" />
                   <span>{item.number}</span>
                 </div>
                 <h3>{item.title}</h3>
@@ -189,41 +321,43 @@ function Deliverables() {
     </section>
   );
 }
+
 function Process() {
   const steps = [
     {
-      when: "DAY 1",
-      title: "Get close to the business.",
-      text: "We agree one product, one audience, the question to answer, and the customer material to review.",
+      when: "UNDERSTAND",
+      title: "Choose a useful starting point.",
+      text: "Agree the audience, product or service, and business goal. Review the relevant pages, sources, and questions to establish a baseline.",
     },
     {
-      when: "DAYS 2–4",
-      title: "Find the useful patterns.",
-      text: "We identify recurring language, buying triggers, and objections. Then we check which ideas the evidence supports.",
+      when: "IMPROVE",
+      title: "Make the right changes.",
+      text: "Prioritise the findings together. Work on the approved content, technical improvements, or campaign direction, with a clear owner for each task.",
     },
     {
-      when: "DAYS 5–7",
-      title: "Make the next test clear.",
-      text: "We walk through your brief, campaign angles, and test plan together. You leave knowing what to try and what to measure.",
+      when: "REVIEW",
+      title: "Measure and decide what’s next.",
+      text: "Repeat the agreed checks, review the results, and document the limitations. Decide whether to continue, adjust the approach, or focus elsewhere.",
     },
   ];
   return (
-    <section className="process-section section-pad">
+    <section id="process" className="process-section section-pad">
       <div className="container">
         <div className="section-heading">
-          <p className="eyebrow">03 / HOW WE WORK</p>
+          <p className="eyebrow">04 / HOW WE WORK</p>
           <div>
             <h2>
-              One focused week.
-              <br />A clearer way forward.
+              Start focused.
+              <br />
+              <em>Build from what you learn.</em>
             </h2>
           </div>
         </div>
         <div className="process-grid">
-          {steps.map((step, index) => (
+          {steps.map((step, i) => (
             <article key={step.when}>
               <div className="process-rule">
-                <span>{String(index + 1).padStart(2, "0")}</span>
+                <span>{String(i + 1).padStart(2, "0")}</span>
                 <ArrowRight size={18} aria-hidden="true" />
               </div>
               <p className="micro">{step.when}</p>
@@ -232,105 +366,60 @@ function Process() {
             </article>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
-function Channels() {
-  return (
-    <section className="channels-section">
-      <div className="container channels-grid">
-        <div>
-          <p className="eyebrow">THE MESSAGE COMES FIRST</p>
-          <h2>
-            Different channels.
-            <br />
-            <em>The same buyer.</em>
-          </h2>
+        <div className="team-note">
+          <span className="micro">THE TEAM BEHIND THE WORK</span>
           <p>
-            A good angle can inform more than one place your customers discover
-            you. We help decide where it belongs first.
+            Founded by NJIT alumni. You work directly with the team doing the
+            research and implementation.
           </p>
         </div>
-        <div className="channel-list">
-          <article>
-            <span className="channel-number">01</span>
-            <div>
-              <h3>Paid social & search</h3>
-              <p>
-                Messaging and test direction for Meta and Google, with a
-                proposed measurement plan.
-              </p>
-            </div>
-            <span className="channel-tag">CAMPAIGN PLANNING</span>
-          </article>
-          <article>
-            <span className="channel-number">02</span>
-            <div>
-              <h3>AI search visibility</h3>
-              <p>
-                Questions, content gaps, and source opportunities to explore
-                through AEO and GEO.
-              </p>
-            </div>
-            <span className="channel-tag">OPTIONAL BRIEF</span>
-          </article>
-          <article>
-            <span className="channel-number">03</span>
-            <div>
-              <h3>Emerging ad platforms</h3>
-              <p>
-                Assess ChatGPT Ads and other placements as advertiser access and
-                business fit allow.
-              </p>
-            </div>
-            <span className="channel-tag">ACCESS DEPENDENT</span>
-          </article>
-        </div>
       </div>
     </section>
   );
 }
+
 function Consultation() {
   return (
-    <section id="consultation" className="pricing-section section-pad">
-      <div className="container pricing-grid">
-        <div className="pricing-intro">
-          <p className="eyebrow">04 / START WITH A CONVERSATION</p>
+    <section id="consultation" className="consultation-section section-pad">
+      <div className="container consultation-grid">
+        <div className="consultation-intro">
+          <p className="eyebrow">05 / FIND THE RIGHT FIT</p>
           <h2>
-            Your business first.
+            Your priorities.
             <br />
-            <em>A plan that fits.</em>
+            <em>A project that fits.</em>
           </h2>
           <p>
-            Tell us where you want to go and what is getting in the way. We’ll
-            discuss the right scope and pricing together, then put the details
-            in a proposal for you to review.
+            Tell us about your business and where you want to improve. We’ll
+            discuss a focused first engagement, then send a proposal with the
+            scope, timing, and fees.
           </p>
           <div className="fit-note">
-            <span className="micro">A GOOD FIT IF</span>
+            <span className="micro">A GOOD PLACE TO START</span>
             <ul>
-              <li>You have customer conversations or reviews to learn from.</li>
-              <li>You want to test a specific product or offer.</li>
-              <li>You can put the recommendations into action.</li>
+              <li>A product or service customers actively compare.</li>
+              <li>A website with room for clearer answers.</li>
+              <li>A team ready to put the findings into action.</li>
             </ul>
           </div>
         </div>
-        <article className="price-card">
-          <div className="price-card-top">
+        <article className="consultation-card">
+          <div className="consultation-card-top">
             <span className="micro">WORK WITH {site.name.toUpperCase()}</span>
-            <span className="price-badge">Let’s talk</span>
+            <span className="card-badge">Let’s talk</span>
           </div>
-          <h3 className="consultation-title">Let’s find your next move.</h3>
-          <p className="price-summary">
-            A conversation about your business, before a commitment.
-          </p>
-          <ul className="price-inclusions">
+          <h3>
+            What would a useful
+            <br />
+            first project look like?
+          </h3>
+          <p>Let’s work that out together.</p>
+          <ul className="consultation-inclusions">
             {[
-              "Your product, audience, and growth goals",
-              "The customer evidence you already have",
-              "Where research or campaign support would help",
-              "A scope, timeline, and fee that fit the work",
+              "Your audience and business goals",
+              "Where customers discover and compare you",
+              "The work that would make the most difference",
+              "A scope, timeline, and fee to review",
             ].map((item) => (
               <li key={item}>
                 <Check size={18} aria-hidden="true" />
@@ -339,25 +428,26 @@ function Consultation() {
             ))}
           </ul>
           <BookingLink className="button button-dark" />
-          <p className="price-fine">
-            Pricing is discussed in the meeting. You approve the written scope
-            and fees before any work starts. Media spend is agreed separately.
+          <p className="card-fine">
+            Fees are agreed in your proposal. Any advertising spend is budgeted
+            separately.
           </p>
         </article>
       </div>
     </section>
   );
 }
+
 function FAQ() {
   return (
     <section id="questions" className="faq-section section-pad">
       <div className="container faq-grid">
         <div>
-          <p className="eyebrow">A FEW THINGS YOU MIGHT ASK</p>
+          <p className="eyebrow">BEFORE WE TALK</p>
           <h2>
-            Good questions.
+            A few questions,
             <br />
-            Straight answers.
+            <em>answered.</em>
           </h2>
         </div>
         <div className="faq-list">
@@ -377,6 +467,7 @@ function FAQ() {
     </section>
   );
 }
+
 function Footer() {
   return (
     <footer className="site-footer">
@@ -384,9 +475,9 @@ function Footer() {
         <div className="footer-top">
           <Brand />
           <p>
-            Customer language.
+            Understand the context.
             <br />
-            Better campaign decisions.
+            Make the opportunity clear.
           </p>
           <a className="text-link" href="#top">
             Back to top <ArrowUpRight size={18} aria-hidden="true" />
@@ -394,24 +485,28 @@ function Footer() {
         </div>
         <div className="footer-bottom">
           <span>© 2026 {site.name}</span>
-          <span>Research → Direction → Your next test</span>
+          <span>AI search visibility · Research · Campaign direction</span>
           <a href="#privacy">Privacy & contact</a>
         </div>
         <details className="privacy-details" id="privacy">
           <summary>Privacy & contact</summary>
           <p>
             {site.bookingUrl
-              ? "Booking opens Calendly in a new tab. Details you enter there are handled by Calendly and the meeting organiser to arrange your call."
-              : "Email links open your email app. We use the information you send to respond to your enquiry and arrange a conversation."}
-            {" "}Please leave out confidential customer information. This website
-            does not collect enquiry details through a form. The hosting provider may
-            process technical access logs to operate this website.
+              ? "Scheduling opens in a new tab. The scheduling provider and meeting organiser use the details you submit to arrange your call."
+              : "Email links open your email app. We use the information you send to respond to your enquiry and arrange a conversation."}{" "}
+            This website does not collect enquiries through a form or use
+            advertising tracking scripts. The hosting provider may process
+            technical access logs to operate the website. Please leave
+            confidential customer information out of your initial message. For
+            privacy questions, contact{" "}
+            <a href={"mailto:" + site.email}>{site.email}</a>.
           </p>
         </details>
       </div>
     </footer>
   );
 }
+
 export default function App() {
   return (
     <>
@@ -423,9 +518,9 @@ export default function App() {
       <main id="main-content">
         <Hero />
         <Approach />
+        <Services />
         <Deliverables />
         <Process />
-        <Channels />
         <Consultation />
         <FAQ />
         <Contact />

@@ -1,115 +1,121 @@
-// Keep brand and commercial details here so a future rename is a small change.
+// Update the inbox only after the domain mailbox can send and receive email.
 export const site = {
-  name: "Motivory",
+  name: "ContextLumen",
+  url: "https://contextlumen.com",
   email: "ygc2@njit.edu",
-  bookingUrl: "", // Set to the team's verified Calendly event URL.
+  bookingUrl: "", // Set to the team's verified scheduling URL.
 };
 
-export const contactEmailUrl = `mailto:${site.email}?subject=${encodeURIComponent("Let's talk about Motivory")}`;
+export const contactEmailUrl =
+  "mailto:" +
+  site.email +
+  "?subject=" +
+  encodeURIComponent("A conversation with " + site.name) +
+  "&body=" +
+  encodeURIComponent(
+    "Hi ContextLumen,\n\nOur website: \nWhat we would like help with: \n\nBest,\n",
+  );
 
 export const examples = [
   {
     name: "Software",
-    source: "An example sales conversation",
+    source: "An example buyer question",
     quote:
-      "The tool looks great. I just can’t spend another month moving the team over.",
-    highlight: "another month moving the team over",
-    signal: "The hesitation is switching effort, not the feature list.",
-    angle: "A better workflow. Without a month of migration.",
-    test: "Compare a migration-led landing page with your current product page.",
-    measure: "Qualified demo requests",
-    check: "Verify your actual migration time before making a promise.",
+      "Which project management tool works for a small team without a complicated migration?",
+    highlight: "without a complicated migration",
+    signal: "The buyer needs an answer about switching, as well as features.",
+    angle: "Make the move understandable.",
+    test: "Explain the migration steps, supported imports, and likely effort on a page buyers and search systems can read.",
+    measure: "Relevant mentions, citations, and qualified demo enquiries",
+    check: "Check migration claims with the product team before publishing.",
   },
   {
-    name: "Ecommerce",
-    source: "An example product review",
+    name: "Commerce",
+    source: "An example buyer question",
     quote:
-      "I wanted something I could wear to work and still be comfortable on the walk home.",
-    highlight: "comfortable on the walk home",
-    signal: "The buyer wants one pair for the whole day.",
-    angle: "For the meeting. And the long way home.",
-    test: "Compare an everyday-use creative with your current product-focused ad.",
-    measure: "Cost per first purchase",
-    check: "Validate comfort claims against product evidence and more reviews.",
+      "What shoes can I wear to the office that are comfortable for a long walk home?",
+    highlight: "comfortable for a long walk home",
+    signal: "The buying context is a whole day, rather than a single feature.",
+    angle: "Answer the everyday-use question.",
+    test: "Bring fit, materials, care guidance, and relevant customer feedback together on the product page. Use that same evidence in campaign messaging.",
+    measure: "Product citations, referral visits, and purchases",
+    check:
+      "Support comfort claims with product evidence and authorised reviews.",
   },
   {
     name: "Services",
-    source: "An example discovery call",
+    source: "An example buyer question",
     quote:
-      "We don’t need another strategy deck. We need someone to help us get the first test live.",
-    highlight: "get the first test live",
-    signal: "The buyer is looking for practical execution and a clear owner.",
-    angle: "Your next test, with someone accountable for getting it out.",
-    test: "Compare a clearly scoped implementation offer with a strategy consultation.",
-    measure: "Qualified project enquiries",
+      "Which web design agency can help a local business and explain what happens after launch?",
+    highlight: "what happens after launch",
+    signal:
+      "The buyer is comparing ongoing support as well as the initial project.",
+    angle: "Show what working together involves.",
+    test: "Clarify the process, service area, maintenance options, and scope on the service page, with accurate business details across public profiles.",
+    measure: "Relevant recommendations and qualified project enquiries",
     check:
-      "Confirm delivery capacity and scope before committing to a deadline.",
+      "Confirm the service area and support commitments with the business.",
   },
 ];
 
 export const deliverables = [
   {
     number: "01",
-    title: "The buyer brief",
+    title: "Know where you stand.",
     description:
-      "The language, objections, and buying triggers that show up in your evidence. With sources you can go back to.",
-    detail: "Customer evidence → useful patterns",
+      "A dated baseline of relevant search questions, the answers we observe, and the sources they cite. Clear findings, with the evidence attached.",
+    detail: "Baseline & opportunity report",
   },
   {
     number: "02",
-    title: "Three campaign angles",
+    title: "Put the findings to work.",
     description:
-      "Distinct messages to test, the audience each one speaks to, and the proof you need to make the claim.",
-    detail: "Useful patterns → sharper messages",
+      "Prioritised content, technical, and messaging improvements. We agree the scope with your team and help carry the work through.",
+    detail: "Approved improvements & implementation",
   },
   {
     number: "03",
-    title: "A practical test plan",
+    title: "See what changed.",
     description:
-      "A recommended channel, landing-page direction, proposed budget, and a metric for deciding what comes next.",
-    detail: "Sharper messages → a testable plan",
+      "Repeat the agreed checks and compare results. You receive a record of what shipped, what moved, and what deserves attention next.",
+    detail: "Before-and-after review & next steps",
   },
 ];
 
 export const faqs = [
   {
+    question: "What do AEO and GEO actually mean?",
+    answer:
+      "Answer engine optimisation and generative engine optimisation are names for work that helps search engines and AI assistants find, understand, and use a business’s public information. In practice, we look at crawlability, useful content, accurate business details, and the sources that support an answer.",
+  },
+  {
+    question: "What would our first project look like?",
+    answer:
+      "We start with one audience, one product or service, and a set of questions that matter to your buyers. We establish a baseline, agree the improvements, implement the approved work, and repeat the checks. Your proposal sets out the deliverables, responsibilities, timeline, and fees.",
+  },
+  {
     question: "How much does it cost?",
     answer:
-      "We discuss pricing in our first meeting, once we understand your goals, the material available, and the work you need. You receive a written proposal with scope, timing, and fees before deciding whether to move forward.",
+      "We discuss fees once we understand your website, priorities, and the work involved. You receive a written scope and proposal before committing. Advertising spend, if part of the engagement, is agreed separately from our service fees.",
   },
   {
-    question: "What do you need from us?",
+    question: "Will we need a new website?",
     answer:
-      "Your product page, a short kickoff conversation, and customer material you are authorised to share: sales notes, reviews, support conversations, or interview transcripts. We agree the source volume before the sprint starts. Please remove personal or sensitive information first.",
+      "Often, the useful work can happen on the site you already have. We review the existing setup and work with your developers or approved access. Any changes to content, code, or configuration are agreed with your team first.",
   },
   {
-    question: "Is this an agency or a software subscription?",
+    question: "How do you measure AI search visibility?",
     answer:
-      "It is a hands-on service. You work with our team and receive a brief and test plan. We use our own tools to help organise the research, then review the recommendations ourselves. There is no software subscription to manage.",
+      "We agree a sample of buyer questions and record the platforms, dates, mentions, citations, and source URLs for each test. We repeat the same checks to make comparisons useful. Answers can vary between runs, so the report describes the sample and its limitations. Where you provide analytics access, we also review referrals and enquiries.",
   },
   {
-    question: "Does the sprint include running our ads?",
+    question: "Can you help with paid campaigns too?",
     answer:
-      "Our research sprint focuses on customer insight and campaign planning. If you also need creative production, campaign setup, or ongoing management, we discuss that in the meeting and include the agreed work in your proposal. Media spend is quoted separately from our fees.",
+      "We can scope customer research, messaging, campaign planning, and implementation support alongside search work. The proposed channel depends on your audience, budget, measurement setup, and account access. Access to emerging advertising platforms is confirmed before a campaign is proposed.",
   },
   {
-    question: "How do AI search and paid ads fit together?",
+    question: "Can you guarantee a mention or a ranking?",
     answer:
-      "They are different ways for buyers to discover you. Paid ads buy placements. AEO and GEO work on the content and sources that can help your brand appear in answers. We recommend the work that fits your audience and current stage, and agree an AI-search brief separately when useful.",
-  },
-  {
-    question: "Can you place ads on ChatGPT?",
-    answer:
-      "We can assess whether it belongs in your plan. Any campaign depends on the platform’s current advertiser access, supported markets, and your account eligibility. We confirm those details before proposing a launch or accepting media spend.",
-  },
-  {
-    question: "What if our evidence is too thin?",
-    answer:
-      "We tell you. The brief separates what customers actually said from our interpretation. If there is not enough support for a campaign claim, we recommend what to learn next before you put budget behind it.",
-  },
-  {
-    question: "Do you guarantee leads or AI rankings?",
-    answer:
-      "No. The sprint delivers a defined set of research and planning work. Campaign performance and AI visibility depend on your offer, competition, execution, and the platforms themselves. We agree a useful measurement plan without promising a result we cannot control.",
+      "No. Search engines and AI platforms control their own answers and placements. We commit to the agreed work, document the changes, and report the observed results clearly. We use those results to decide what to try next.",
   },
 ];

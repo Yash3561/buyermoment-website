@@ -6,15 +6,14 @@ export function Contact() {
     <section id="contact" className="contact-section section-pad">
       <div className="container contact-grid">
         <div>
-          <p className="eyebrow">LET’S FIND YOUR NEXT ANGLE</p>
+          <p className="eyebrow">LET’S FIND YOUR STARTING POINT</p>
           <h2>
             Start with
-            <br />a conversation<span className="lime">.</span>
+            <br />a conversation<span className="accent">.</span>
           </h2>
           <p className="contact-copy">
-            Bring your product, your goals, and the question you keep coming
-            back to. We’ll talk through where we can help, what the work
-            involves, and what it would cost.
+            Share your website and what you want to improve. We’ll talk through
+            where we can help and what a useful first project would involve.
           </p>
           <div className="contact-detail">
             <span className="detail-rule" />
@@ -31,7 +30,7 @@ export function Contact() {
           ) : (
             <Mail size={32} strokeWidth={1.4} aria-hidden="true" />
           )}
-          <p className="micro">MEET THE MOTIVORY TEAM</p>
+          <p className="micro">MEET THE {site.name.toUpperCase()} TEAM</p>
           <h3>Let’s talk about your business.</h3>
           <p>
             {site.bookingUrl
@@ -40,7 +39,7 @@ export function Contact() {
           </p>
           {site.bookingUrl ? (
             <a
-              className="button button-lime"
+              className="button button-accent"
               href={site.bookingUrl}
               target="_blank"
               rel="noopener noreferrer"
@@ -49,10 +48,7 @@ export function Contact() {
             </a>
           ) : (
             <>
-              <a
-                className="button button-lime"
-                href={contactEmailUrl}
-              >
+              <a className="button button-accent" href={contactEmailUrl}>
                 Email us <ArrowUpRight size={19} aria-hidden="true" />
               </a>
               <p className="form-note">
@@ -64,8 +60,8 @@ export function Contact() {
           )}
           {site.bookingUrl && (
             <p className="form-note">
-              Opens Calendly in a new tab. Booking a call does not commit you to
-              a project.
+              Opens our scheduling page in a new tab. Booking a call does not
+              commit you to a project.
             </p>
           )}
           <a className="booking-privacy" href="#privacy">

@@ -21,9 +21,9 @@ export function Header() {
           aria-label="Main navigation"
         >
           {[
-            ["approach", "Our approach"],
+            ["services", "Services"],
             ["the-work", "The work"],
-            ["consultation", "Work with us"],
+            ["process", "Our approach"],
             ["questions", "FAQs"],
           ].map(([id, label]) => (
             <a href={`#${id}`} key={id} onClick={() => setOpen(false)}>

@@ -37,7 +37,7 @@ export function EvidenceDemo() {
         <div className="quote-source">
           <Quote size={21} aria-hidden="true" />
           <span>{example.source}</span>
-          <span className="note-index">01 / INPUT</span>
+          <span className="note-index">01 / QUESTION</span>
         </div>
         <blockquote>
           “{before}
@@ -50,14 +50,14 @@ export function EvidenceDemo() {
         </div>
         <div className="example-flow" aria-hidden="true">
           <ArrowDown size={22} />
-          <span>Turn the hesitation into an angle</span>
+          <span>Understand the context. Choose the improvement.</span>
         </div>
         <div className="campaign-note">
-          <div className="micro">02 / CAMPAIGN DIRECTION</div>
+          <div className="micro">02 / RECOMMENDED WORK</div>
           <h3>{example.angle}</h3>
           <p>{example.test}</p>
           <div className="measurement">
-            <span>Measure</span>
+            <span>Review</span>
             <strong>{example.measure}</strong>
             <ArrowUpRight size={18} aria-hidden="true" />
           </div>
