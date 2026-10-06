@@ -4,6 +4,10 @@
 
 The contact section includes a copy-address fallback for webmail users. `site.bookingUrl` uses the verified public 30-minute Calendly event (https://calendly.com/yashchaudhary3561/30min), with an optional VITE_CALENDLY_URL override. Do not display a fake Book now destination.
 
+## Calendly acceptance check, October 6, 2026
+
+The event is active and the embedded calendar loads. However, the public calendar showed no bookable dates in October, and the availability API returned no slots for October 7-14. Its declared schedule is Monday-Friday, 09:00-17:00 Eastern. This does not establish why slots are unavailable. Review the event's booking range, calendar conflicts, and conferencing setup in Calendly, then confirm a real bookable slot. No meeting or availability change was made. The booking page has a prominent email meeting-request fallback.
+
 ## Public DNS check, October 6, 2026
 
 - MX: mx.zoho.com (10), mx2.zoho.com (20), mx3.zoho.com (50).

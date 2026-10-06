@@ -2030,6 +2030,17 @@ em {
 .meeting-card > .text-link {
   margin-block: 20px 0;
 }
+.meeting-email-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  margin-top: 18px;
+  line-height: 1.65;
+}
 .meeting-email {
   display: flex;
   align-items: center;

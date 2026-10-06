@@ -71,6 +71,10 @@ export function BookPage() {
               Use our calendar to choose an available time. Times are shown in
               your local timezone.
             </p>
+            <a className="meeting-email-option" href={contactEmailUrl}>
+              No suitable time? Request a meeting by email
+              <Mail size={17} aria-hidden="true" />
+            </a>
             {loaded ? (
               <iframe
                 className="calendar-embed"

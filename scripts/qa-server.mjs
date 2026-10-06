@@ -1,15 +1,8 @@
 import http from "node:http";
 import { readFile } from "node:fs/promises";
 import { resolve, sep } from "node:path";
-import { render } from "../.qa/entry-server.js";
 import { createHandler } from "../api/check.js";
 const api = createHandler();
-const template = (await readFile("index.html", "utf8"))
-  .replace('<div id="root"></div>', () => '<div id="root">__RENDER__</div>')
-  .replace(
-    '<script type="module" src="/src/main.tsx"></script>',
-    '<link rel="stylesheet" href="/assets/app.css"><script type="module" src="/assets/app.js"></script>',
-  );
 const types = {
   ".js": "text/javascript",
   ".css": "text/css",
@@ -48,13 +41,18 @@ http
         return;
       }
       if (["/", "/audit", "/book"].includes(url.pathname)) {
-        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-        res.end(template.replace("__RENDER__", () => render(url.pathname)));
+        const file =
+          url.pathname === "/"
+            ? "dist/index.html"
+            : "dist" + url.pathname + "/index.html";
+        res.writeHead(200, {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "no-store",
+        });
+        res.end(await readFile(file));
         return;
       }
-      const base = resolve(
-        url.pathname.startsWith("/assets/") ? ".qa" : "public",
-      );
+      const base = resolve("dist");
       const file = resolve(base, "." + decodeURIComponent(url.pathname));
       if (!file.startsWith(base + sep)) {
         res.writeHead(403);
@@ -62,9 +60,11 @@ http
         return;
       }
       const body = await readFile(file);
-      const extension = file.slice(file.lastIndexOf("."));
       res.writeHead(200, {
-        "Content-Type": types[extension] || "application/octet-stream",
+        "Content-Type":
+          types[file.slice(file.lastIndexOf("."))] ||
+          "application/octet-stream",
+        "Cache-Control": "no-store",
       });
       res.end(body);
     } catch {
@@ -73,5 +73,5 @@ http
     }
   })
   .listen(4173, "127.0.0.1", () =>
-    console.log("Source QA preview: http://127.0.0.1:4173"),
+    console.log("Artifact QA preview: http://127.0.0.1:4173"),
   );

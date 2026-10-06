@@ -114,7 +114,7 @@ export function Results({ report }: { report: Report }) {
               dateStyle: "medium",
               timeStyle: "short",
             })}
-            {report.cached ? " · Recent cached snapshot" : " · Fresh check"}
+            {report.cached ? " · Cached when checked" : " · Homepage snapshot"}
           </p>
         </div>
         <button

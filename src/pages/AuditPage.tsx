@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
   ArrowUpRight,
@@ -51,6 +51,10 @@ export function AuditPage() {
   const [error, setError] = useState("");
   const [allowance, setAllowance] = useState<Allowance | null>(null);
   const [refresh, setRefresh] = useState(0);
+  const reportHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (allowance?.state === "completed") reportHeading.current?.focus();
+  }, [allowance?.state]);
 
   useEffect(() => {
     if (!auth) {
@@ -90,6 +94,12 @@ export function AuditPage() {
     if (!session) return;
     const controller = new AbortController();
     let alive = true;
+    const timeout = setTimeout(() => {
+      if (alive) {
+        setError("Your account check took too long. Please try again.");
+        controller.abort();
+      }
+    }, 15000);
     setError("");
     fetch("/api/check", {
       headers: { Authorization: "Bearer " + session.access_token },
@@ -110,9 +120,11 @@ export function AuditPage() {
           (result.state === "completed" && !result.report?.findings)
         )
           throw new Error("Your saved audit could not be verified.");
+        clearTimeout(timeout);
         if (alive) setAllowance(result);
       })
       .catch((error) => {
+        clearTimeout(timeout);
         if (alive && error.name !== "AbortError")
           setError(
             error.message || "Your audit account is temporarily unavailable.",
@@ -120,6 +132,7 @@ export function AuditPage() {
       });
     return () => {
       alive = false;
+      clearTimeout(timeout);
       controller.abort();
     };
   }, [session, refresh]);
@@ -194,7 +207,7 @@ export function AuditPage() {
       </section>
       <section
         className="account-section container"
-        aria-labelledby="account-heading"
+        aria-label="Free audit account"
       >
         {!ready ? (
           <p role="status">Preparing secure sign-in…</p>
@@ -250,6 +263,7 @@ export function AuditPage() {
                     <label htmlFor="audit-code">Six-digit sign-in code</label>
                     <input
                       id="audit-code"
+                      autoFocus
                       inputMode="numeric"
                       autoComplete="one-time-code"
                       pattern="[0-9]{6}"
@@ -339,6 +353,13 @@ export function AuditPage() {
             )}
             {allowance?.state === "completed" && allowance.report && (
               <>
+                <h2
+                  className="checker-result-announcement"
+                  tabIndex={-1}
+                  ref={reportHeading}
+                >
+                  Your audit report
+                </h2>
                 <div className="saved-report-note">
                   <CheckSaved />
                   <p>
