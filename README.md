@@ -1,55 +1,54 @@
 # ContextLumen
 
-The service website for ContextLumen: AI search visibility, customer research, website messaging, and campaign planning.
+Service-first AI search visibility, website improvements, and campaign research. The website uses React 19, TypeScript, Vite, Lucide icons, and a custom responsive design system.
 
-## Stack
+## Pages
 
-React 19, TypeScript, Vite, Lucide icons, and a custom responsive CSS system. Production output is prerendered HTML and static assets: the copy and contact links are readable before JavaScript loads, then React hydrates the menu and example switcher.
+- `/`: services, concrete illustrative work, deliverables, process, FAQs and contact.
+- `/audit`: evidence-based homepage readiness check, verified-email account flow and one successful free audit per account.
+- `/book`: opt-in Calendly embed with an external calendar link and email fallback.
+
+All three pages are prerendered with page-specific metadata and shared navigation. The public audit does not measure live AI mentions or award a visibility score. Sign-in stays disabled until the dedicated backend is configured.
 
 ## Development
 
 ```sh
 npm ci
+npm run dev:api
 npm run dev
+npm run test
 npm run build
 npm run check
 npm run preview
 ```
 
-The local server uses http://127.0.0.1:4173. The production build runs type checking, client and server compilation, and homepage prerendering. The build check validates the rendered brand, structured data, canonical URL, internal links, contact destination, and social assets.
+Run the API and frontend in separate terminals. Frontend: http://127.0.0.1:4173. The build type-checks, bundles client/server code, and prerenders each route into dist.
 
-## Deployment
+If Windows denies Vite's esbuild child process with EPERM, do not disable security protections. Use an authorized build environment or the Vercel preview build. The native-esbuild source preview is a diagnostic fallback, not proof that the production Vite build passed.
 
-Deploy the existing GitHub repository on Vercel using Vite, `npm run build`, and `dist` as the output directory. The repository name can remain `buyermoment-website`; it does not appear in the customer-facing brand.
+## Deployment and accounts
 
-The primary domain is `https://www.contextlumen.com`. Vercel's domain settings redirect `contextlumen.com` to www. Domain redirects are managed only in the Vercel dashboard, not duplicated in `vercel.json`. See [Domain setup](docs/domain-setup.md) for configuration and DNS precautions.
+Vercel project: `motivory`. Git repository: `Yash3561/buyermoment-website`. Primary domain: https://www.contextlumen.com. Domain redirects are managed only in Vercel domain settings, never duplicated in vercel.json.
 
-The existing `.openai/hosting.json` is historical Sites deployment metadata and is not used by Vercel.
+Follow [audit launch checklist](docs/audit-launch.md) before enabling public audits. Copy the variable names in .env.example into provider settings. Never commit live keys. The public website's database must stay separate from internal agency client records and MCP.
 
-## Project structure
+Current verified Calendly event: https://calendly.com/yashchaudhary3561/30min. Override using VITE_CALENDLY_URL and rebuild; only HTTPS calendly.com event URLs are accepted. Set an invalid/empty override to use the honest email fallback. Loading the embed is a visitor choice and does not automatically book an appointment.
 
-- `src/App.tsx`: page sections and composition.
-- `src/components/`: brand, navigation, illustrative example switcher, and contact flow.
-- `src/content.ts`: central brand, domain, email, FAQs, examples, and scheduling configuration.
-- `src/styles.css`: design tokens, responsive layouts, focus states, and reduced-motion support.
-- `scripts/prerender.mjs`: rendered homepage and Organization/WebSite structured data.
-- `scripts/check-build.mjs`: production output validation.
-- `public/`: CL brand assets, social preview, robots file, and sitemap.
-- `vercel.json`: build settings and baseline response headers. Domain redirects belong in Vercel's domain settings.
-- `scripts/check-live.mjs`: read-only checks of both custom-domain hosts, redirects, live CSS/JavaScript, branding, and metadata. Run `npm run check:live` after deployment.
+Contact email: yashchaudhary@contextlumen.com. Mailto links open a draft; no message is sent automatically. No public price list, invented testimonials, client logos, fabricated results or ranking guarantees. Fees and scope are agreed in a proposal.
 
-## Contact
+## Structure
 
-All consultation buttons currently open an email draft to `ygc2@njit.edu`. Sending it remains the visitor's choice; the website does not submit or store enquiries.
+- src/App.tsx: homepage and shared shell
+- src/pages/: audit and booking routes
+- src/components/: reusable navigation, branding, contact and report UI
+- src/auth.ts: lazy-loaded public sign-in client
+- src/content.ts: brand, email, FAQs and calendar config
+- src/styles.css: ivory/evergreen/amber palette, type scale, responsive layouts, focus and reduced-motion states
+- api/check.js: authenticated server endpoint
+- lib/: safe public fetches, evidence analysis and private account adapter
+- supabase/migrations/: database-enforced audit allowance and restricted RPCs
+- scripts/: prerender, build/live checks and diagnostic utilities
+- tests/: scanner, endpoint and account tests
+- public/logo.svg: single mark reused in navigation, footer, favicon and generated social card
 
-Set `site.bookingUrl` in `src/content.ts` to a verified scheduling URL when ready. Buttons then open that URL in a new tab. No scheduler API key is required. Update `site.email` only after the company mailbox can receive mail.
-
-## Brand and commercial principles
-
-- ContextLumen pairs understanding the buyer's context with bringing the opportunity into focus.
-- Ivory, deep charcoal, warm amber, editorial typography, and a custom CL mark form the visual identity.
-- No public prices: scope, timing, and fees are confirmed in a written proposal.
-- Paid campaign work depends on account access, approvals, and separately budgeted media spend.
-- Examples are clearly illustrative, not case studies. No invented customers, testimonials, results, platform partnerships, or ranking guarantees.
-- Visibility reporting uses documented samples and dates. Changes to AI answers are not automatically attributable to our work.
-- Client implementation requires approval; confidential customer information should not be included in the initial email.
+See [checker methodology](docs/checker-method.md), [domain setup](docs/domain-setup.md), and [contact setup](docs/contact-setup.md). Historical .openai/hosting.json is not used by Vercel.

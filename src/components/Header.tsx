@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Brand } from "./Brand";
 import { BookingLink } from "./BookingLink";
-export function Header() {
+export function Header({ path = "/" }: { path?: string }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const close = (e: KeyboardEvent) => {
@@ -21,15 +21,27 @@ export function Header() {
           aria-label="Main navigation"
         >
           {[
-            ["services", "Services"],
-            ["the-work", "The work"],
-            ["process", "Our approach"],
-            ["questions", "FAQs"],
+            ["/#services", "Services"],
+            ["/#the-work", "What you get"],
+            ["/#process", "Our process"],
+            ["/audit", "Free audit"],
           ].map(([id, label]) => (
-            <a href={`#${id}`} key={id} onClick={() => setOpen(false)}>
+            <a
+              href={id}
+              key={id}
+              aria-current={path === id ? "page" : undefined}
+              onClick={() => setOpen(false)}
+            >
               {label}
             </a>
           ))}
+          <a
+            className="mobile-contact-link"
+            href="/book"
+            onClick={() => setOpen(false)}
+          >
+            Talk to the team
+          </a>
         </nav>
         <BookingLink className="button button-small nav-contact" />
         <button

@@ -1,8 +1,11 @@
 node_modules/
 dist/
 .prerender/
+.qa/
 .sites-runtime/
 *.tsbuildinfo
 .env
 .env.local
+.env.*
+!.env.example
 *.tar.gz
