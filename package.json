@@ -9,6 +9,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "check": "node scripts/check-build.mjs",
     "check:live": "node scripts/check-live.mjs",
+    "check:audit-live": "node scripts/audit-launch-preflight.mjs",
     "test": "node --test tests/*.test.mjs",
     "dev:api": "node scripts/dev-api.mjs"
   },
