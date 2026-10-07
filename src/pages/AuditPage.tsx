@@ -294,7 +294,7 @@ export function AuditPage() {
               </h2>
               <p>
                 {sent
-                  ? "Enter the six-digit sign-in code sent to your email."
+                  ? "Enter the eight-digit sign-in code sent to your email. It expires in ten minutes."
                   : "Verify your email to use your free audit and return to your saved report."}
               </p>
               {!sent && googleAuthEnabled && (
@@ -338,14 +338,14 @@ export function AuditPage() {
                 />
                 {sent && (
                   <>
-                    <label htmlFor="audit-code">Six-digit sign-in code</label>
+                    <label htmlFor="audit-code">Eight-digit sign-in code</label>
                     <input
                       id="audit-code"
                       autoFocus
                       inputMode="numeric"
                       autoComplete="one-time-code"
-                      pattern="[0-9]{6}"
-                      maxLength={6}
+                      pattern="[0-9]{8}"
+                      maxLength={8}
                       required
                       value={code}
                       onChange={(e) =>
