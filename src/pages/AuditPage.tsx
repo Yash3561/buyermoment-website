@@ -6,6 +6,7 @@ import {
   ShieldCheck,
   LogOut,
   LoaderCircle,
+  AlertCircle,
 } from "lucide-react";
 import {
   getAuditAuth,
@@ -17,6 +18,7 @@ import {
   authReturnState,
   googleSignInOptions,
   isReadinessReport,
+  signInErrorMessage,
 } from "../lib/audit-flow.mjs";
 import { contactEmailUrl } from "../content";
 import {
@@ -60,6 +62,10 @@ export function AuditPage({ privateTest = false }: { privateTest?: boolean }) {
   const [googleBusy, setGoogleBusy] = useState(false);
   const [ready, setReady] = useState(!configured);
   const [error, setError] = useState("");
+  const signInAlert = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (error && !session) signInAlert.current?.focus();
+  }, [error, session]);
   const [allowance, setAllowance] = useState<Allowance | null>(null);
   const [refresh, setRefresh] = useState(0);
   const reportHeading = useRef<HTMLHeadingElement>(null);
@@ -167,6 +173,12 @@ export function AuditPage({ privateTest = false }: { privateTest?: boolean }) {
   async function signIn(event: FormEvent) {
     event.preventDefault();
     if (!auth || busy || googleBusy) return;
+    if (sent && !/^\d{8}$/.test(code.trim())) {
+      setError(
+        "Enter the full eight-digit code from your latest sign-in email.",
+      );
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -177,12 +189,7 @@ export function AuditPage({ privateTest = false }: { privateTest?: boolean }) {
             type: "email",
           })
         : await auth.auth.signInWithOtp({ email: email.trim() });
-      if (result.error)
-        throw new Error(
-          sent
-            ? "That code could not be verified. Check the code or request a new one."
-            : "We could not send a sign-in code. Please wait a minute and try again, or contact us.",
-        );
+      if (result.error) throw new Error(signInErrorMessage(result.error, sent));
       if (!sent) setSent(true);
     } catch (error) {
       setError(
@@ -369,14 +376,42 @@ export function AuditPage({ privateTest = false }: { privateTest?: boolean }) {
                       autoComplete="one-time-code"
                       pattern="[0-9]{8}"
                       maxLength={8}
+                      aria-invalid={Boolean(error)}
+                      aria-describedby={
+                        error ? "audit-signin-alert" : undefined
+                      }
+                      onInvalid={(event) => {
+                        event.preventDefault();
+                        setError(
+                          "Enter the full eight-digit code from your latest sign-in email.",
+                        );
+                      }}
                       required
                       value={code}
-                      onChange={(e) =>
-                        setCode(e.target.value.replace(/\D/g, ""))
-                      }
+                      onChange={(e) => {
+                        setCode(e.target.value.replace(/\D/g, ""));
+                        setError("");
+                      }}
                       disabled={busy}
                     />
                   </>
+                )}
+                {error && (
+                  <div
+                    id="audit-signin-alert"
+                    className="account-error signin-alert"
+                    role="alert"
+                    tabIndex={-1}
+                    ref={signInAlert}
+                  >
+                    <AlertCircle size={20} aria-hidden="true" />
+                    <div>
+                      <strong>
+                        {sent ? "Code not verified" : "Sign-in needs attention"}
+                      </strong>
+                      <p>{error}</p>
+                    </div>
+                  </div>
                 )}
                 <button
                   type="submit"
@@ -484,7 +519,7 @@ export function AuditPage({ privateTest = false }: { privateTest?: boolean }) {
             )}
           </div>
         )}
-        {error && (
+        {error && (session || !auth) && (
           <div className="account-error" role="alert">
             <p>{error}</p>
             {session && (

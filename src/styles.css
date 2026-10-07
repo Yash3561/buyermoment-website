@@ -2269,6 +2269,29 @@ em {
   border: 0;
   padding: 15px 0 0;
 }
+.signin-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 6px 0;
+  color: #6d321c;
+}
+.signin-alert svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+.signin-alert p {
+  margin: 6px 0 0;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+.signin-alert:focus {
+  outline: 2px solid #925315;
+  outline-offset: 3px;
+}
+.account-form input[aria-invalid="true"] {
+  border-color: #a65330;
+}
 .account-section .checker-section {
   background: transparent;
   padding-block: 28px 0;

@@ -1,3 +1,18 @@
+export function signInErrorMessage(error, verifying = false) {
+  if (
+    error?.status === 429 ||
+    ["over_request_rate_limit", "over_email_send_rate_limit"].includes(
+      error?.code,
+    )
+  )
+    return "Too many attempts. Wait a minute before trying again or requesting a new code.";
+  if (verifying && error?.code === "otp_expired")
+    return "That code is incorrect, expired, or already used. Check the newest eight-digit code in your inbox, or request a new code.";
+  return verifying
+    ? "We could not verify that code. Check the newest code or request a new one."
+    : "We could not send a sign-in code. Please wait a minute and try again, or contact us.";
+}
+
 // The callback is fixed to this app. Never accept a visitor-supplied return URL.
 export function googleSignInOptions(origin) {
   const url = new URL(origin);
