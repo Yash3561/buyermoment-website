@@ -19,6 +19,14 @@ const pages = [
       "Inspect your public homepage and crawl rules with evidence-based findings. One free audit per verified account. Not an AI visibility score.",
   },
   {
+    path: "/audit/verify",
+    file: "dist/audit/verify/index.html",
+    title: "Private launch verification | ContextLumen",
+    description:
+      "Time-limited owner verification of the ContextLumen audit workflow. Not public audit access.",
+    noindex: true,
+  },
+  {
     path: "/book",
     file: "dist/book/index.html",
     title: "Book a conversation | ContextLumen",
@@ -114,7 +122,8 @@ for (const page of pages) {
     )
     .replace(
       "</head>",
-      '<script type="application/ld+json">' +
+      (page.noindex ? '<meta name="robots" content="noindex,nofollow">' : "") +
+        '<script type="application/ld+json">' +
         JSON.stringify(graph).replaceAll("<", "\\u003c") +
         "</script></head>",
     )
@@ -127,4 +136,4 @@ for (const page of pages) {
   });
   await writeFile(page.file, html);
 }
-console.log("Prerendered " + pages.length + " public pages.");
+console.log("Prerendered " + pages.length + " pages.");

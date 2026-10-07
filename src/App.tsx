@@ -50,7 +50,8 @@ function Hero() {
               <ArrowRight size={17} aria-hidden="true" />
             </a>
             <a className="text-link" href="/sample-report">
-              See what the audit checks <ArrowRight size={17} aria-hidden="true" />
+              See what the audit checks{" "}
+              <ArrowRight size={17} aria-hidden="true" />
             </a>
           </div>
           <p className="hero-footnote">
@@ -532,6 +533,8 @@ export default function App({ path = "/" }: { path?: string }) {
             <FAQ />
             <Contact />
           </>
+        ) : page === "/audit/verify" ? (
+          <AuditPage privateTest />
         ) : page === "/audit" ? (
           <AuditPage />
         ) : page === "/book" ? (

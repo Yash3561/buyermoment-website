@@ -6,6 +6,31 @@ The website has its own account system. Do not connect visitor accounts to the i
 
 ### October 7 launch handoff
 
+Latest verified checkpoint:
+
+- The fresh named modern server secret `contextlumen_web_production` is saved as a Production-only Vercel Secret named `SUPABASE_SECRET_KEY`. Its value was not inspected.
+- The old modern `default` secret was deleted. Legacy JWT-based API keys were disabled. The publishable key remains active; JWT signing keys were not rotated.
+- A controlled email OTP request was accepted by Supabase, and the owner confirmed inbox delivery to the test mailbox. This proves delivery, not code verification or audit success. A subsequent read-only check still showed the test account as unverified.
+- Public audit flags remain absent or false. PR #3 remains a staged release, not a completed public launch.
+- Remove Vercel's obsolete `SUPABASE_SERVICE_ROLE_KEY` variable. Its credential has been retired, but it should not remain as a fallback configuration.
+
+### Owner-only production verification
+
+The unlinked `/audit/verify` page reuses the real email sign-in, API and saved-report workflow while `/audit` stays closed. It is excluded from the sitemap and marked `noindex`. Neither an unlinked URL nor `noindex` provides authorization: the server checks a remotely verified, email-confirmed Supabase identity against its own temporary allowlist.
+
+1. Keep `AUDIT_ACCOUNTS_ENABLED` and `VITE_AUDIT_ENABLED` absent or `false`. Keep Google disabled.
+2. In Vercel Production only, set `AUDIT_TEST_USER_IDS` to the exact Supabase UUID of the owner's test account. Never use email addresses, wildcards, metadata, or a browser-supplied user ID. Up to four explicit test identities are supported.
+3. Set `AUDIT_TEST_EXPIRES_AT` to a UTC ISO timestamp, for example the format `YYYY-MM-DDTHH:mm:ssZ`, within the next 24 hours. Missing, malformed, expired or more-than-24-hour-future settings deny access. The expiry is rechecked before every ledger operation.
+4. Create a fresh Production build containing this code and the Production secret. Promoting a Preview without a rebuild does not supply the missing Production secret.
+5. Open `https://www.contextlumen.com/audit/verify`, request a fresh code and enter it directly in the form. Never send the code in chat. Confirm the server reports an available allowance.
+6. Run one authorized public homepage and verify its dated report, download, refresh persistence, returning-user sign-in, second-site denial and account isolation. The real test uses the owner's single free allowance. Do not silently reset it or delete the account afterward.
+7. Confirm non-allowlisted verified accounts cannot read or claim a report, and confirm the ordinary `/audit` page remains closed. An expired test window must deny access again.
+8. Remove both temporary test variables after verification. Do not enable the public flags until the remaining live acceptance and abuse-control checks below pass.
+
+The private page allows the normal email sign-in flow, not general audit access. Existing Supabase sign-in rate limits still apply. If the test window expires during a scan, saving fails closed and the ledger lease permits a later approved retry. Rebuilding is required when changing browser `VITE_` configuration. Server configuration also requires redeployment to reach existing Functions.
+
+The local suite now covers strict allowlists, expiry, remotely verified identity, denied-user crawl prevention, public flag isolation and route discovery controls. Automated fixture tests are not a substitute for the live acceptance checks.
+
 The domain's MX records resolve to Zoho (`mx.zoho.com`, `mx2.zoho.com`, `mx3.zoho.com`). A Google account registered with the same address does not establish Google Workspace mail routing. Use the SMTP hostname displayed in the mailbox's own Server Configuration page; Zoho distinguishes account plans and datacenters.
 
 - Dashboard: `https://supabase.com/dashboard/project/ecqegontmlfycrxkgtyk/auth/smtp`

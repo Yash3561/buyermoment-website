@@ -136,3 +136,40 @@ test("auth client remains lazy, single-instance and PKCE-based with a separate G
   assert.match(env, /VITE_GOOGLE_AUTH_ENABLED=false/);
   assert.match(env, /VITE_AUDIT_ENABLED=false/);
 });
+
+test("private verification keeps the public launch gates and is excluded from discovery", async () => {
+  const [app, page, prerender, config, sitemap, auth] = await Promise.all(
+    [
+      "../src/App.tsx",
+      "../src/pages/AuditPage.tsx",
+      "../scripts/prerender.mjs",
+      "../vercel.json",
+      "../public/sitemap.xml",
+      "../src/auth.ts",
+    ].map((path) => readFile(new URL(path, import.meta.url), "utf8")),
+  );
+  assert.match(app, /page === "\/audit\/verify"/);
+  assert.match(app, /<AuditPage privateTest \/>/);
+  assert.match(app, /VITE_AUDIT_ENABLED === "true"/);
+  assert.doesNotMatch(app, /href="\/audit\/verify"/);
+  assert.match(page, /canUseGoogle = googleAuthEnabled && !privateTest/);
+  assert.match(
+    auth,
+    /VITE_AUDIT_ENABLED === "true" && privateAuditAuthConfigured/,
+  );
+  assert.match(prerender, /path: "\/audit\/verify"[\s\S]*?noindex: true/);
+  assert.match(prerender, /name="robots" content="noindex,nofollow"/);
+  assert(
+    JSON.parse(config).headers.some(
+      (rule) =>
+        rule.source === "/audit/verify/:path*" &&
+        rule.headers.some((header) => header.key === "X-Robots-Tag"),
+    ),
+  );
+  assert.doesNotMatch(sitemap, /audit\/verify/);
+  assert.equal(
+    authReturnState("https://www.contextlumen.com/audit/verify?code=fixture")
+      .cleanPath,
+    "/audit/verify",
+  );
+});
