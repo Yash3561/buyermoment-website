@@ -22,6 +22,8 @@ import { MethodologyPage } from "./pages/MethodologyPage";
 import { PolicyPage } from "./pages/PolicyPage";
 import { deliverables, faqs, site } from "./content";
 
+const selfServeAuditAvailable = import.meta.env.VITE_AUDIT_ENABLED === "true";
+
 function Hero() {
   return (
     <section className="hero" aria-labelledby="hero-title">
@@ -42,11 +44,14 @@ function Hero() {
           </p>
           <div className="hero-actions">
             <a className="button button-dark" href="/audit">
-              Explore your free audit{" "}
+              {selfServeAuditAvailable
+                ? "Start your free audit"
+                : "See audit status"}{" "}
               <ArrowRight size={17} aria-hidden="true" />
             </a>
             <a className="text-link" href="/sample-report">
-              View a sample report <ArrowRight size={17} aria-hidden="true" />
+              See what the audit checks{" "}
+              <ArrowRight size={17} aria-hidden="true" />
             </a>
           </div>
           <p className="hero-footnote">
@@ -297,7 +302,7 @@ function TheWork() {
         <div className="work-report-link">
           <p>See how a finding becomes a practical next step.</p>
           <a className="text-link" href="/sample-report">
-            Open the sample report <ArrowRight size={17} aria-hidden="true" />
+            Review the audit scope <ArrowRight size={17} aria-hidden="true" />
           </a>
         </div>
       </div>
@@ -504,7 +509,9 @@ export default function App({ path = "/" }: { path?: string }) {
                     evidence and a next step.
                   </p>
                   <a className="button button-dark" href="/audit">
-                    Explore the free audit{" "}
+                    {selfServeAuditAvailable
+                      ? "Start the free audit"
+                      : "See audit status"}{" "}
                     <ArrowRight size={17} aria-hidden="true" />
                   </a>
                 </div>
@@ -512,8 +519,9 @@ export default function App({ path = "/" }: { path?: string }) {
                   <Search size={30} strokeWidth={1.5} aria-hidden="true" />
                   <h3>A checklist, not a made-up score.</h3>
                   <p>
-                    One successful audit per verified account. Public pages
-                    only. No changes to your website.
+                    {selfServeAuditAvailable
+                      ? "One successful audit per verified account. Public pages only. No changes to your website."
+                      : "Self-service sign-in is being prepared. The audit will use public pages only and will not change your website."}
                   </p>
                   <p className="form-note">
                     This checks technical readiness. Actual AI mentions and
@@ -525,6 +533,8 @@ export default function App({ path = "/" }: { path?: string }) {
             <FAQ />
             <Contact />
           </>
+        ) : page === "/audit/verify" ? (
+          <AuditPage privateTest />
         ) : page === "/audit" ? (
           <AuditPage />
         ) : page === "/book" ? (

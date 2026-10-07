@@ -7,7 +7,12 @@ import {
   LogOut,
   LoaderCircle,
 } from "lucide-react";
-import { getAuditAuth, auditAuthConfigured, googleAuthEnabled } from "../auth";
+import {
+  getAuditAuth,
+  auditAuthConfigured,
+  privateAuditAuthConfigured,
+  googleAuthEnabled,
+} from "../auth";
 import {
   authReturnState,
   googleSignInOptions,
@@ -24,13 +29,16 @@ type Allowance = {
   state: "available" | "running" | "completed";
   report?: Report;
 };
-export function AuditPage() {
+export function AuditPage({ privateTest = false }: { privateTest?: boolean }) {
   const [auth, setAuth] =
     useState<Awaited<ReturnType<typeof getAuditAuth>>>(null);
-  const configured = auditAuthConfigured;
+  const configured = privateTest
+    ? privateAuditAuthConfigured
+    : auditAuthConfigured;
+  const canUseGoogle = googleAuthEnabled && !privateTest;
   useEffect(() => {
     let alive = true;
-    getAuditAuth()
+    getAuditAuth(privateTest)
       .then((client) => {
         if (alive) setAuth(client);
       })
@@ -43,7 +51,7 @@ export function AuditPage() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [privateTest]);
   const [session, setSession] = useState<Session | null>(null);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -187,7 +195,7 @@ export function AuditPage() {
     }
   }
   async function signInWithGoogle() {
-    if (!auth || busy || googleBusy || !googleAuthEnabled) return;
+    if (!auth || busy || googleBusy || !canUseGoogle) return;
     setGoogleBusy(true);
     setError("");
     try {
@@ -223,7 +231,11 @@ export function AuditPage() {
   return (
     <>
       <section className="page-hero container" aria-labelledby="audit-heading">
-        <p className="eyebrow">AEO / GEO READINESS · ONE FREE AUDIT</p>
+        <p className="eyebrow">
+          {privateTest
+            ? "PRIVATE LAUNCH VERIFICATION"
+            : "AEO / GEO READINESS · ONE FREE AUDIT"}
+        </p>
         <h1 id="audit-heading">
           Start with what
           <br />
@@ -233,6 +245,13 @@ export function AuditPage() {
           A homepage assessment with evidence you can inspect, a checklist you
           can understand, and practical next steps. No made-up visibility score.
         </p>
+        {privateTest && (
+          <p className="form-note" role="note">
+            Owner-only verification. Signing in does not grant audit access. The
+            server permits only approved test accounts during a time-limited
+            test window.
+          </p>
+        )}
         <div className="page-meta">
           <span>
             <ShieldCheck size={17} aria-hidden="true" /> Public pages only
@@ -242,7 +261,8 @@ export function AuditPage() {
         </div>
         <div className="page-resource-links">
           <a className="text-link" href="/sample-report">
-            See a sample report <ArrowUpRight size={17} aria-hidden="true" />
+            See what the audit checks{" "}
+            <ArrowUpRight size={17} aria-hidden="true" />
           </a>
           <a className="text-link" href="/methodology">
             Read our methodology <ArrowUpRight size={17} aria-hidden="true" />
@@ -261,25 +281,26 @@ export function AuditPage() {
               <span className="icon-box">
                 <Mail size={23} aria-hidden="true" />
               </span>
-              <h2 id="account-heading">Request your first assessment.</h2>
+              <h2 id="account-heading">Your audit is being prepared.</h2>
               <p>
-                Self-service sign-in is being prepared. For now, send us your
-                public website and what you want customers to find. We can
-                discuss a first assessment directly.
+                We’re finishing secure sign-in and saved reports before opening
+                self-service audits. You’ll be able to enter a public website,
+                review the evidence, and return to your report from the same
+                account.
               </p>
               <a className="button button-dark" href={contactEmailUrl}>
-                Ask for an assessment{" "}
+                Contact us while we finish{" "}
                 <ArrowUpRight size={17} aria-hidden="true" />
               </a>
               <p className="form-note">
-                Opens your email app. We will confirm the scope before
-                proceeding.
+                This link opens your email app. No message is sent
+                automatically.
               </p>
               <a
                 className="text-link account-sample-link"
                 href="/sample-report"
               >
-                Explore the report format{" "}
+                Review the audit scope{" "}
                 <ArrowUpRight size={17} aria-hidden="true" />
               </a>
             </div>
@@ -288,16 +309,18 @@ export function AuditPage() {
         ) : !session ? (
           <div className="account-layout">
             <div className="account-panel">
-              <p className="micro">YOUR FREE AUDIT</p>
+              <p className="micro">
+                {privateTest ? "VERIFY THE LAUNCH WORKFLOW" : "YOUR FREE AUDIT"}
+              </p>
               <h2 id="account-heading">
                 {sent ? "Check your inbox." : "A report worth keeping."}
               </h2>
               <p>
                 {sent
-                  ? "Enter the six-digit sign-in code sent to your email."
+                  ? "Enter the eight-digit sign-in code sent to your email. It expires in ten minutes."
                   : "Verify your email to use your free audit and return to your saved report."}
               </p>
-              {!sent && googleAuthEnabled && (
+              {!sent && canUseGoogle && (
                 <>
                   <button
                     type="button"
@@ -338,14 +361,14 @@ export function AuditPage() {
                 />
                 {sent && (
                   <>
-                    <label htmlFor="audit-code">Six-digit sign-in code</label>
+                    <label htmlFor="audit-code">Eight-digit sign-in code</label>
                     <input
                       id="audit-code"
                       autoFocus
                       inputMode="numeric"
                       autoComplete="one-time-code"
-                      pattern="[0-9]{6}"
-                      maxLength={6}
+                      pattern="[0-9]{8}"
+                      maxLength={8}
                       required
                       value={code}
                       onChange={(e) =>

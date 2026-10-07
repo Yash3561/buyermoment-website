@@ -1,17 +1,74 @@
 # Public audit launch checklist
 
-The website has its own account system. Do not connect visitor accounts to the internal agency MCP or client evidence database. No Supabase project was created, restored, or modified during implementation.
+The website has its own account system. Do not connect visitor accounts to the internal agency MCP or client evidence database. The dedicated Supabase project `contextlumen-public-audit` (`ecqegontmlfycrxkgtyk`) was created in US East on October 6, 2026, on the $0/month tier. The free-audit ledger migration was applied. Its table has RLS enabled with no public policies; only the server-side service role can operate it.
 
 ## Provisioning and configuration
 
-1. Choose a dedicated public-website Supabase project and confirm its plan and available quota. The connected account currently showed two unrelated inactive projects on October 6, 2026. Do not silently restore or repurpose them.
-2. Apply `supabase/migrations/202610060001_free_audits.sql` through that project's SQL editor or migration workflow. Inspect migration results and permissions.
-3. Enable email sign-in and verified-email signup. Turn off anonymous sign-in. Set the production Site URL to `https://www.contextlumen.com`; allow only the intended production/test redirect URLs, never an unrestricted wildcard.
-4. Configure production email delivery. Supabase's built-in mail sender is not a general public signup solution. Use a verified custom SMTP sender or a supported provider after checking cost, SMTP access and domain authentication. Do not assume a mailbox plan includes SMTP.
-5. Change the Magic Link email template to display `{{ .Token }}` as a six-digit sign-in code. The website uses `signInWithOtp` followed by `verifyOtp` with type `email`. Leaving the default magic-link-only template does not match this UI. Test new signup and returning-user emails.
-6. Set both browser URL/anon key and server URL/service-role key in Vercel. They must refer to the SAME dedicated project. Browser config is public; the service role is server-only. Enter secrets directly in provider settings, not chat, Git, public screenshots, or a VITE variable.
-7. Keep `VITE_AUDIT_ENABLED=false` and `AUDIT_ACCOUNTS_ENABLED=false` until steps 1-6 pass. Then set both to `true`, rebuild, and run the live checks below. A missing configuration fails closed.
-8. Configure platform-level abuse controls and usage alerts before broad promotion. In-memory IP limits are per function instance, not distributed. Enable sign-in rate controls and consider Supabase CAPTCHA with matching UI support before a public launch. Do not enable provider CAPTCHA without adding a valid CAPTCHA token flow to this form.
+### October 7 launch handoff
+
+Latest verified checkpoint:
+
+- The fresh named modern server secret `contextlumen_web_production` is saved as a Production-only Vercel Secret named `SUPABASE_SECRET_KEY`. Its value was not inspected.
+- The old modern `default` secret was deleted. Legacy JWT-based API keys were disabled. The publishable key remains active; JWT signing keys were not rotated.
+- A controlled email OTP request was accepted by Supabase, and the owner confirmed inbox delivery to the test mailbox. This proves delivery, not code verification or audit success. A subsequent read-only check still showed the test account as unverified.
+- Public audit flags remain absent or false. PR #3 remains a staged release, not a completed public launch.
+- Remove Vercel's obsolete `SUPABASE_SERVICE_ROLE_KEY` variable. Its credential has been retired, but it should not remain as a fallback configuration.
+
+### Owner-only production verification
+
+The unlinked `/audit/verify` page reuses the real email sign-in, API and saved-report workflow while `/audit` stays closed. It is excluded from the sitemap and marked `noindex`. Neither an unlinked URL nor `noindex` provides authorization: the server checks a remotely verified, email-confirmed Supabase identity against its own temporary allowlist.
+
+1. Keep `AUDIT_ACCOUNTS_ENABLED` and `VITE_AUDIT_ENABLED` absent or `false`. Keep Google disabled.
+2. In Vercel Production only, set `AUDIT_TEST_USER_IDS` to the exact Supabase UUID of the owner's test account. Never use email addresses, wildcards, metadata, or a browser-supplied user ID. Up to four explicit test identities are supported.
+3. Set `AUDIT_TEST_EXPIRES_AT` to a UTC ISO timestamp, for example the format `YYYY-MM-DDTHH:mm:ssZ`, within the next 24 hours. Missing, malformed, expired or more-than-24-hour-future settings deny access. The expiry is rechecked before every ledger operation.
+4. Create a fresh Production build containing this code and the Production secret. Promoting a Preview without a rebuild does not supply the missing Production secret.
+5. Open `https://www.contextlumen.com/audit/verify`, request a fresh code and enter it directly in the form. Never send the code in chat. Confirm the server reports an available allowance.
+6. Run one authorized public homepage and verify its dated report, download, refresh persistence, returning-user sign-in, second-site denial and account isolation. The real test uses the owner's single free allowance. Do not silently reset it or delete the account afterward.
+7. Confirm non-allowlisted verified accounts cannot read or claim a report, and confirm the ordinary `/audit` page remains closed. An expired test window must deny access again.
+8. Remove both temporary test variables after verification. Do not enable the public flags until the remaining live acceptance and abuse-control checks below pass.
+
+The private page allows the normal email sign-in flow, not general audit access. Existing Supabase sign-in rate limits still apply. If the test window expires during a scan, saving fails closed and the ledger lease permits a later approved retry. Rebuilding is required when changing browser `VITE_` configuration. Server configuration also requires redeployment to reach existing Functions.
+
+The local suite now covers strict allowlists, expiry, remotely verified identity, denied-user crawl prevention, public flag isolation and route discovery controls. Automated fixture tests are not a substitute for the live acceptance checks.
+
+The domain's MX records resolve to Zoho (`mx.zoho.com`, `mx2.zoho.com`, `mx3.zoho.com`). A Google account registered with the same address does not establish Google Workspace mail routing. Use the SMTP hostname displayed in the mailbox's own Server Configuration page; Zoho distinguishes account plans and datacenters.
+
+- Dashboard: `https://supabase.com/dashboard/project/ecqegontmlfycrxkgtyk/auth/smtp`
+- Sender name: `ContextLumen`
+- Sender email and SMTP username: `yashchaudhary@contextlumen.com`
+- SMTP hostname: copy from Zoho Mail > Settings > Mail Accounts > Server Configuration. Zoho documents `smtp.zoho.com` for free/personal US accounts and `smtppro.zoho.com` for paid organization US accounts. Do not choose solely from the MX hostname.
+- Verified saved October 7 configuration: `smtp.zoho.com:465`, sender name `ContextLumen`, custom SMTP enabled. Reloading the dashboard confirmed persistence, not delivery. The owner entered the app password directly; its value was not inspected.
+- Password: enter directly in Supabase. If Zoho requires an application password, the account owner creates and enters it. Never send it in chat or commit it.
+- If the plan does not permit SMTP, stop rather than upgrading or disabling email verification. Choose an approved free transactional sender separately.
+- Both Auth > Email Templates > Confirm sign up and Magic link or OTP were saved October 7 with subject `Your ContextLumen sign-in code` and `supabase/templates/magic-link.html`. Their previews show the brand and `{{ .Token }}` with no default sign-in link. This is configuration evidence, not delivery evidence. Keep email OTP length at 8 to match the UI, and expiry at 600 seconds. Keep email confirmation required and anonymous sign-in disabled.
+- Set Site URL to `https://www.contextlumen.com` and allow the exact return URL `https://www.contextlumen.com/audit`.
+- In the Vercel `motivory` project, use `SUPABASE_SECRET_KEY` as a server-only Secret for production. Use a fresh `sb_secret_...` key from this dedicated audit project, not an internal agency project. Do not add it to a VITE variable. The backend prefers this variable over the temporary `SUPABASE_SERVICE_ROLE_KEY` fallback and sends modern secrets only on the `apikey` header; visitor JWT verification remains separate.
+- A previously exposed privileged key is a launch blocker. Confirm its type by prefix only: `eyJ` identifies a legacy JWT, while `sb_secret_` identifies a modern secret. Creating a replacement does not invalidate either type. Follow the incident checklist below before launch.
+- Only after credential invalidation, replacement configuration, redeployment and real sign-in delivery tests pass may production `AUDIT_ACCOUNTS_ENABLED=true` and `VITE_AUDIT_ENABLED=true` be enabled and rebuilt. Google sign-in remains disabled until separately configured.
+
+### Exposed privileged key: owner-controlled remediation
+
+Keep both audit flags absent or false throughout remediation. Never paste credentials into chat, logs, Git, or screenshots.
+
+1. In this project's Settings > API Keys > Publishable and secret API keys, the owner creates a fresh named server secret, for example `contextlumen-web-production`. Credential creation and entry are owner-only steps.
+2. The owner saves that value directly in Vercel as `SUPABASE_SECRET_KEY`, type Secret, Production only. Do not pull production secrets locally. The frontend already prefers `VITE_SUPABASE_PUBLISHABLE_KEY`; verify no active consumer still depends on legacy keys.
+3. In Supabase's legacy API-key settings, the owner disables the legacy `anon` and `service_role` API keys. New key creation alone leaves them valid. If the exposed credential is instead a modern secret, revoke that specific secret. Do not reactivate a compromised credential to work around a release issue.
+4. Remove the stale `SUPABASE_SERVICE_ROLE_KEY` environment variable after replacement. Deploy the compatible backend with public flags still disabled. Old deployments must not retain a usable compromised credential.
+5. Confirm credential invalidation in the dashboard, replacement presence without revealing it, the deployed commit, and disabled public audit state. Then test new-user and returning-user email delivery and the authenticated audit flow in a protected test deployment with explicit test-only credentials. Production stays disabled until acceptance passes.
+
+Legacy API-key deactivation and JWT signing-key rotation are separate actions. Do not rotate the shared JWT signing secret blindly. If the signing secret itself was exposed, treat that as a wider incident requiring signing-key migration and session-impact review. See [Supabase's API-key migration guide](https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys).
+
+Run `npm run check:audit-live` after deployment. This performs GET-only checks of the public pages and unauthenticated API. It fails if the frontend is still disabled or the API is unconfigured. A pass is not evidence of SMTP delivery or a complete successful audit; perform the live acceptance checks below too.
+
+During the October 7 check, the Vercel connector returned 403 for the known project/team and listed no accessible teams. Its dashboard is accessible through the owner's signed-in browser. Supabase dashboard access was restored using the original GitHub login, rather than the separate business-email account. The production site URL and exact audit callback were saved. Publishing and real email/audit acceptance tests are still required; dashboard access is not evidence of a completed deployment.
+
+1. The dedicated project exists and the ledger migration is applied. Two unrelated inactive projects were left untouched.
+2. Enable email sign-in and verified-email signup. Turn off anonymous sign-in. Set the production Site URL to `https://www.contextlumen.com`; allow only the intended production/test redirect URLs, never an unrestricted wildcard.
+3. Configure production email delivery. Supabase's built-in mail sender is not a general public signup solution. Use a verified custom SMTP sender or a supported provider after checking cost, SMTP access and domain authentication. Do not assume a mailbox plan includes SMTP.
+4. Change both Confirm sign up and Magic link or OTP templates to display `{{ .Token }}` as an eight-digit sign-in code. The website uses `signInWithOtp` followed by `verifyOtp` with type `email`. Leaving the default link-only templates does not match this UI. Test new signup and returning-user emails.
+5. Public browser URL and publishable key are configured in Vercel for production, preview, and development. Add the matching server URL and server-only secret key in Vercel. Never put the secret key in chat, Git, public screenshots, or a VITE variable. Any previously exposed privileged key must first be invalidated.
+6. Keep `VITE_AUDIT_ENABLED=false` and `AUDIT_ACCOUNTS_ENABLED=false` until steps 2-5 pass. Then set both to `true`, rebuild, and run the live checks below. A missing configuration fails closed.
+7. Configure platform-level abuse controls and usage alerts before broad promotion. In-memory IP limits are per function instance, not distributed. Enable sign-in rate controls and consider Supabase CAPTCHA with matching UI support before a public launch. Do not enable provider CAPTCHA without adding a valid CAPTCHA token flow to this form.
 
 ## Google sign-in
 

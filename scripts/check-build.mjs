@@ -139,18 +139,13 @@ const auditPage = await readFile("dist/audit/index.html", "utf8");
 const bookPage = await readFile("dist/book/index.html", "utf8");
 const samplePage = await readFile("dist/sample-report/index.html", "utf8");
 assert(
-  samplePage.includes("DEMONSTRATION DATA ONLY"),
-  "Sample must disclose fictional data.",
+  samplePage.includes("Know what the audit checks"),
+  "Audit scope page must explain the checks.",
 );
 assert(
-  samplePage.includes("No scan was run"),
-  "Sample must not imply a live scan.",
+  samplePage.includes("No live ChatGPT, Gemini, or Perplexity ranking is claimed"),
+  "Audit scope page must state what it does not measure.",
 );
-assert(
-  !/href="https:\/\/sample\.example/.test(samplePage),
-  "Fictional sources must not become links.",
-);
-assert(samplePage.includes("Download sample (.txt)"));
 assert(auditPage.includes('id="audit-heading"'));
 assert(auditPage.includes("verified account"));
 assert(
@@ -164,5 +159,5 @@ if (site.bookingUrl)
   );
 assert(bookPage.includes("A useful first"));
 console.log(
-  "PASS: all seven routes, per-page metadata, labelled sample data, privacy-preserving calendar, and no public prices or em dashes.",
+  "PASS: all seven routes, per-page metadata, audit scope, privacy-preserving calendar, and no public prices or em dashes.",
 );

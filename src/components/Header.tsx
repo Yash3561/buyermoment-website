@@ -22,7 +22,7 @@ export function Header({ path = "/" }: { path?: string }) {
         >
           {[
             ["/#services", "Services"],
-            ["/sample-report", "Sample report"],
+            ["/sample-report", "Audit scope"],
             ["/#process", "Our process"],
             ["/audit", "Free audit"],
           ].map(([id, label]) => (

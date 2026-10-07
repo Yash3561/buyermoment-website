@@ -7,7 +7,7 @@ Service-first AI search visibility, website improvements, and campaign research.
 - `/`: services, concrete illustrative work, deliverables, process, FAQs and contact.
 - `/audit`: evidence-based homepage readiness check, verified-email account flow and one successful free audit per account.
 - `/book`: opt-in Calendly embed with an external calendar link and email fallback.
-- `/sample-report`: interactive fictional report with explicit demonstration labels, evidence and a labelled text export.
+- `/sample-report`: a clear explanation of the free audit's scope, report contents, and measurement limits. It contains no fictional client results.
 - `/methodology`: readiness scope, AI visibility measurement definitions and comparison limitations.
 - `/privacy` and `/terms`: public account, data-processing and free-audit boundaries.
 

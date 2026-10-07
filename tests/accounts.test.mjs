@@ -272,6 +272,81 @@ test("private account store receives server-approved user and job IDs only", asy
     "https://store.example/",
   );
 });
+test("modern server key takes precedence and never becomes a Bearer token for the ledger", async () => {
+  const calls = [];
+  const secret = "sb_secret_test_fixture_only";
+  const account = createAuditAccounts(
+    { ...env, SUPABASE_SECRET_KEY: secret },
+    async (url, options) => {
+      calls.push({ url, ...options });
+      if (url.includes("/free_audits?")) return Response.json([]);
+      if (url.endsWith("claim_free_audit"))
+        return Response.json({ state: "claimed" });
+      return Response.json(true);
+    },
+  );
+  assert.deepEqual(await account.status({ id: userId }), {
+    state: "available",
+  });
+  await account.claim({ id: userId }, "job");
+  await account.complete(
+    { id: userId },
+    "job",
+    report("https://store.example/"),
+  );
+  await account.fail({ id: userId }, "job");
+  assert.equal(calls.length, 4);
+  for (const call of calls) {
+    assert.equal(call.headers.apikey, secret);
+    assert.equal(new Headers(call.headers).has("authorization"), false);
+  }
+});
+test("modern server key verifies the visitor JWT without replacing visitor authorization", async () => {
+  const secret = "sb_secret_test_fixture_only";
+  const token = "x".repeat(30);
+  const account = createAuditAccounts(
+    {
+      ...env,
+      SUPABASE_SECRET_KEY: secret,
+      SUPABASE_SERVICE_ROLE_KEY: undefined,
+    },
+    async (url, options) => {
+      assert.equal(url, env.SUPABASE_URL + "/auth/v1/user");
+      assert.equal(options.headers.apikey, secret);
+      assert.equal(options.headers.Authorization, "Bearer " + token);
+      return Response.json({
+        id: userId,
+        email: "user@example.com",
+        email_confirmed_at: "2026-10-07",
+        is_anonymous: false,
+      });
+    },
+  );
+  assert.deepEqual(await account.requireUser(authRequest(token)), {
+    id: userId,
+  });
+});
+test("configured modern server key cannot bypass a disabled launch flag", async () => {
+  let calls = 0;
+  const account = createAuditAccounts(
+    {
+      ...env,
+      AUDIT_ACCOUNTS_ENABLED: "false",
+      SUPABASE_SECRET_KEY: "sb_secret_test_fixture_only",
+    },
+    async () => {
+      calls++;
+      throw Error("must not connect");
+    },
+  );
+  await assert.rejects(account.requireUser(authRequest("x".repeat(30))), {
+    code: "AUDIT_NOT_READY",
+  });
+  await assert.rejects(account.status({ id: userId }), {
+    code: "AUDIT_NOT_READY",
+  });
+  assert.equal(calls, 0);
+});
 test("database migration uses a per-user key and transaction lock, and denies browser mutation", async () => {
   const sql = await readFile(
     new URL(
@@ -292,4 +367,158 @@ test("database migration uses a per-user key and transaction lock, and denies br
     sql,
     /where user_id = p_user_id and job_id = p_job_id and status = 'running'/,
   );
+});
+
+const privateEnv = () => ({
+  ...env,
+  AUDIT_ACCOUNTS_ENABLED: "false",
+  AUDIT_TEST_USER_IDS: userId,
+  AUDIT_TEST_EXPIRES_AT: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+});
+const verifiedUser = (id = userId) => ({
+  id,
+  email: "fixture@example.com",
+  email_confirmed_at: "2026-10-07",
+  is_anonymous: false,
+});
+test("private verification requires a strict, bounded, unexpired server configuration", async () => {
+  for (const overrides of [
+    { AUDIT_TEST_USER_IDS: "" },
+    { AUDIT_TEST_USER_IDS: "*" },
+    { AUDIT_TEST_USER_IDS: "fixture@example.com" },
+    { AUDIT_TEST_USER_IDS: userId + "," },
+    { AUDIT_TEST_USER_IDS: Array(5).fill(userId).join(",") },
+    { AUDIT_TEST_EXPIRES_AT: "" },
+    { AUDIT_TEST_EXPIRES_AT: "not-a-date" },
+    { AUDIT_TEST_EXPIRES_AT: "2099-01-01T00:00:00Z" },
+    { AUDIT_TEST_EXPIRES_AT: new Date(Date.now() - 1000).toISOString() },
+  ]) {
+    let calls = 0;
+    const account = createAuditAccounts(
+      { ...privateEnv(), ...overrides },
+      async () => {
+        calls++;
+        throw Error("must not connect");
+      },
+    );
+    await assert.rejects(account.requireUser(authRequest("x".repeat(30))), {
+      code: "AUDIT_NOT_READY",
+    });
+    await assert.rejects(account.status({ id: userId }), {
+      code: "AUDIT_NOT_READY",
+    });
+    assert.equal(calls, 0);
+  }
+});
+test("private verification allows only a remotely verified server-allowlisted identity", async () => {
+  const calls = [];
+  const account = createAuditAccounts(privateEnv(), async (url, options) => {
+    calls.push({ url, ...options });
+    if (url.endsWith("/auth/v1/user")) return Response.json(verifiedUser());
+    if (url.includes("/free_audits?")) return Response.json([]);
+    if (url.endsWith("claim_free_audit"))
+      return Response.json({ state: "claimed" });
+    return Response.json(true);
+  });
+  // Internal ledger calls cannot substitute a manually constructed identity.
+  for (const operation of [
+    () => account.status({ id: userId }),
+    () => account.claim({ id: userId }, "job"),
+    () =>
+      account.complete(
+        { id: userId },
+        "job",
+        report("https://fixture.example/"),
+      ),
+    () => account.fail({ id: userId }, "job"),
+  ])
+    await assert.rejects(operation(), { code: "AUDIT_NOT_READY", status: 403 });
+  assert.equal(calls.length, 0);
+  const user = await account.requireUser(authRequest("x".repeat(30)));
+  assert.deepEqual(await account.status(user), { state: "available" });
+  assert.deepEqual(await account.claim(user, "job"), { state: "claimed" });
+  await account.complete(user, "job", report("https://fixture.example/"));
+  await account.fail(user, "job");
+  assert.equal(calls.length, 5);
+});
+test("browser IDs and metadata cannot authorize an unlisted account or start a crawl", async () => {
+  const otherId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+  let authCalls = 0,
+    crawls = 0;
+  const account = createAuditAccounts(privateEnv(), async (url) => {
+    assert(url.endsWith("/auth/v1/user"));
+    authCalls++;
+    return Response.json({
+      ...verifiedUser(otherId),
+      user_metadata: { id: userId, approved: true },
+    });
+  });
+  const handler = createHandler(async (url) => {
+    crawls++;
+    return report(url);
+  }, account);
+  for (const method of ["GET", "POST"]) {
+    const response = await handler(
+      new Request("https://www.contextlumen.com/api/check?user_id=" + userId, {
+        method,
+        headers: {
+          authorization: "Bearer " + "x".repeat(30),
+          "content-type": "application/json",
+          "x-user-id": userId,
+          origin: "https://www.contextlumen.com",
+        },
+        ...(method === "POST"
+          ? {
+              body: JSON.stringify({
+                url: "https://denied.example/",
+              }),
+            }
+          : {}),
+      }),
+    );
+    assert.equal(response.status, 403);
+    assert.equal((await response.json()).code, "AUDIT_NOT_READY");
+  }
+  assert.equal(authCalls, 2);
+  assert.equal(crawls, 0);
+});
+test("private test access expires again before every ledger operation", async (t) => {
+  const now = Date.parse("2026-10-07T18:00:00Z");
+  t.mock.method(Date, "now", () => now);
+  let calls = 0;
+  const account = createAuditAccounts(privateEnv(), async () => {
+    calls++;
+    return Response.json(verifiedUser());
+  });
+  const user = await account.requireUser(authRequest("x".repeat(30)));
+  t.mock.method(Date, "now", () => now + 2 * 60 * 60 * 1000);
+  for (const operation of [
+    () => account.requireUser(authRequest("x".repeat(30))),
+    () => account.status(user),
+    () => account.claim(user, "job"),
+    () => account.complete(user, "job", report("https://fixture.example/")),
+    () => account.fail(user, "job"),
+  ])
+    await assert.rejects(operation(), { code: "AUDIT_NOT_READY" });
+  assert.equal(calls, 1);
+});
+test("private mode never bypasses email verification, anonymity or rejected sessions", async () => {
+  for (const response of [
+    Response.json({ ...verifiedUser(), email_confirmed_at: null }),
+    Response.json({ ...verifiedUser(), is_anonymous: true }),
+    new Response("rejected", { status: 401 }),
+  ]) {
+    const account = createAuditAccounts(privateEnv(), async () => response);
+    await assert.rejects(account.requireUser(authRequest("x".repeat(30))));
+  }
+});
+test("an explicit public launch does not inherit the temporary test allowlist", async () => {
+  const account = createAuditAccounts(
+    { ...privateEnv(), AUDIT_ACCOUNTS_ENABLED: "true" },
+    async () =>
+      Response.json(verifiedUser("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")),
+  );
+  assert.deepEqual(await account.requireUser(authRequest("x".repeat(30))), {
+    id: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  });
 });

@@ -188,7 +188,7 @@ export function MethodologyPage() {
               <li>Client examples are published only with permission.</li>
             </ul>
             <a className="button button-dark" href="/sample-report">
-              Explore a sample report{" "}
+              Review the audit scope{" "}
               <ArrowRight size={17} aria-hidden="true" />
             </a>
           </section>
