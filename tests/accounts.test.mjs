@@ -272,6 +272,81 @@ test("private account store receives server-approved user and job IDs only", asy
     "https://store.example/",
   );
 });
+test("modern server key takes precedence and never becomes a Bearer token for the ledger", async () => {
+  const calls = [];
+  const secret = "sb_secret_test_fixture_only";
+  const account = createAuditAccounts(
+    { ...env, SUPABASE_SECRET_KEY: secret },
+    async (url, options) => {
+      calls.push({ url, ...options });
+      if (url.includes("/free_audits?")) return Response.json([]);
+      if (url.endsWith("claim_free_audit"))
+        return Response.json({ state: "claimed" });
+      return Response.json(true);
+    },
+  );
+  assert.deepEqual(await account.status({ id: userId }), {
+    state: "available",
+  });
+  await account.claim({ id: userId }, "job");
+  await account.complete(
+    { id: userId },
+    "job",
+    report("https://store.example/"),
+  );
+  await account.fail({ id: userId }, "job");
+  assert.equal(calls.length, 4);
+  for (const call of calls) {
+    assert.equal(call.headers.apikey, secret);
+    assert.equal(new Headers(call.headers).has("authorization"), false);
+  }
+});
+test("modern server key verifies the visitor JWT without replacing visitor authorization", async () => {
+  const secret = "sb_secret_test_fixture_only";
+  const token = "x".repeat(30);
+  const account = createAuditAccounts(
+    {
+      ...env,
+      SUPABASE_SECRET_KEY: secret,
+      SUPABASE_SERVICE_ROLE_KEY: undefined,
+    },
+    async (url, options) => {
+      assert.equal(url, env.SUPABASE_URL + "/auth/v1/user");
+      assert.equal(options.headers.apikey, secret);
+      assert.equal(options.headers.Authorization, "Bearer " + token);
+      return Response.json({
+        id: userId,
+        email: "user@example.com",
+        email_confirmed_at: "2026-10-07",
+        is_anonymous: false,
+      });
+    },
+  );
+  assert.deepEqual(await account.requireUser(authRequest(token)), {
+    id: userId,
+  });
+});
+test("configured modern server key cannot bypass a disabled launch flag", async () => {
+  let calls = 0;
+  const account = createAuditAccounts(
+    {
+      ...env,
+      AUDIT_ACCOUNTS_ENABLED: "false",
+      SUPABASE_SECRET_KEY: "sb_secret_test_fixture_only",
+    },
+    async () => {
+      calls++;
+      throw Error("must not connect");
+    },
+  );
+  await assert.rejects(account.requireUser(authRequest("x".repeat(30))), {
+    code: "AUDIT_NOT_READY",
+  });
+  await assert.rejects(account.status({ id: userId }), {
+    code: "AUDIT_NOT_READY",
+  });
+  assert.equal(calls, 0);
+});
 test("database migration uses a per-user key and transaction lock, and denies browser mutation", async () => {
   const sql = await readFile(
     new URL(
