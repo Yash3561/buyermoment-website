@@ -2,6 +2,7 @@ node_modules/
 dist/
 .prerender/
 .qa/
+output/pdf/
 .sites-runtime/
 *.tsbuildinfo
 .env

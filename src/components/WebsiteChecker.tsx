@@ -40,51 +40,6 @@ export type Report = {
   training: { agent: string; allowedByRobots: boolean; note: string };
   limitations: string[];
 };
-function download(report: Report, sample = false) {
-  const text = [
-    ...(sample
-      ? [
-          "DEMONSTRATION DATA ONLY. No scan, client result, or measured improvement.",
-          "",
-        ]
-      : []),
-    "ContextLumen | AEO/GEO readiness check",
-    (sample ? "Example date: " : "Checked: ") + report.checkedAt,
-    "Website: " + report.finalUrl,
-    "Scope: " + report.scope,
-    "Method: " + report.version,
-    "Not an AI visibility or ranking score.",
-    "",
-    ...report.findings.flatMap((f) => [
-      f.title + " [" + f.status + "]",
-      "Evidence: " + f.evidence,
-      "Interpretation: " + f.meaning,
-      "Next step: " + f.action,
-      "Guidance: " + f.source,
-      "",
-    ]),
-    "Training: GPTBot " +
-      (report.training.allowedByRobots ? "not disallowed" : "disallowed") +
-      ". " +
-      report.training.note,
-    "",
-    "Limitations:",
-    ...report.limitations.map((x) => "- " + x),
-    "",
-    site.email,
-    site.url,
-  ].join("\n");
-  const href = URL.createObjectURL(
-    new Blob([text], { type: "text/plain;charset=utf-8" }),
-  );
-  const anchor = document.createElement("a");
-  anchor.href = href;
-  anchor.download = sample
-    ? "contextlumen-sample-report.txt"
-    : "contextlumen-" + new URL(report.finalUrl).hostname + "-readiness.txt";
-  anchor.click();
-  setTimeout(() => URL.revokeObjectURL(href), 1000);
-}
 export function Results({
   report,
   mode = "live",
@@ -93,6 +48,23 @@ export function Results({
   mode?: "live" | "sample";
 }) {
   const sample = mode === "sample";
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
+  async function download() {
+    if (exporting) return;
+    setExporting(true);
+    setExportError("");
+    try {
+      const { downloadReportPdf } = await import("../lib/report-pdf.mjs");
+      await downloadReportPdf(report, sample);
+    } catch {
+      setExportError(
+        "We could not create your PDF. Your saved report is unchanged. Please try again or contact us.",
+      );
+    } finally {
+      setExporting(false);
+    }
+  }
   const priorities = report.findings
     .filter((f) => f.status === "review")
     .sort((a, b) => a.priority - b.priority)
@@ -144,12 +116,31 @@ export function Results({
         <button
           type="button"
           className="button button-outline report-download"
-          onClick={() => download(report, sample)}
+          onClick={download}
+          disabled={exporting}
+          aria-busy={exporting}
         >
-          <Download size={17} aria-hidden="true" />{" "}
-          {sample ? "Download sample (.txt)" : "Download report (.txt)"}
+          {exporting ? (
+            <LoaderCircle
+              size={17}
+              className="checker-spin"
+              aria-hidden="true"
+            />
+          ) : (
+            <Download size={17} aria-hidden="true" />
+          )}{" "}
+          {exporting
+            ? "Preparing PDF"
+            : sample
+              ? "Download example PDF"
+              : "Download PDF report"}
         </button>
       </div>
+      {exportError && (
+        <p className="account-error" role="alert">
+          {exportError}
+        </p>
+      )}
       <div className="report-counts">
         <div>
           <strong>{report.summary.observed}</strong>

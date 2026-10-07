@@ -1,4 +1,8 @@
 import type { Report } from "../components/WebsiteChecker";
+export function signInErrorMessage(
+  error: { code?: string; status?: number } | null | undefined,
+  verifying?: boolean,
+): string;
 export function googleSignInOptions(origin: string): {
   provider: "google";
   options: { redirectTo: string };

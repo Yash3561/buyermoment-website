@@ -5,9 +5,45 @@ import {
   authReturnState,
   googleSignInOptions,
   isReadinessReport,
+  signInErrorMessage,
 } from "../src/lib/audit-flow.mjs";
 import { analysePage, parseRobots } from "../lib/audit.mjs";
 import sample from "../src/data/sample-report.json" with { type: "json" };
+
+test("OTP failures are specific, safe and do not claim wrong and expired codes can be distinguished", () => {
+  const invalid = signInErrorMessage(
+    { code: "otp_expired", message: "secret provider details" },
+    true,
+  );
+  assert.match(invalid, /incorrect, expired, or already used/);
+  assert.match(invalid, /newest eight-digit code/);
+  assert.doesNotMatch(invalid, /secret provider details/);
+  assert.match(signInErrorMessage({ status: 429 }, true), /Too many attempts/);
+  assert.match(
+    signInErrorMessage({ code: "over_email_send_rate_limit" }),
+    /Too many attempts/,
+  );
+  assert.match(
+    signInErrorMessage(new Error("sensitive provider text"), true),
+    /could not verify/,
+  );
+  assert.doesNotMatch(
+    signInErrorMessage(new Error("sensitive provider text")),
+    /sensitive provider text/,
+  );
+});
+
+test("OTP errors are inline, accessible and linked to the verification field", async () => {
+  const page = await readFile(
+    new URL("../src/pages/AuditPage.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(page, /id="audit-signin-alert"/);
+  assert.match(page, /role="alert"/);
+  assert.match(page, /aria-invalid=\{Boolean\(error\)\}/);
+  assert.match(page, /signInAlert\.current\?\.focus\(\)/);
+  assert.match(page, /signInErrorMessage\(result\.error, sent\)/);
+});
 
 test("Google sign-in uses a fixed same-origin callback and identity-only defaults", () => {
   assert.deepEqual(googleSignInOptions("https://www.contextlumen.com"), {
