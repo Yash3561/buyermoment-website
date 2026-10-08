@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
+  ArrowRight,
   ArrowUpRight,
-  Mail,
+  Globe2,
   ShieldCheck,
   LogOut,
   LoaderCircle,
@@ -20,24 +21,78 @@ import {
   isReadinessReport,
   signInErrorMessage,
 } from "../lib/audit-flow.mjs";
-import { contactEmailUrl } from "../content";
 import {
-  WebsiteChecker,
-  Results,
-  type Report,
-} from "../components/WebsiteChecker";
+  normalizeWebsite,
+  consumeScanIntent,
+  websiteStorageKey,
+} from "../lib/audit-journey.mjs";
+import { contactEmailUrl } from "../content";
+import { AuditRequestError, requestAudit } from "../lib/audit-request.mjs";
+import { Results, type Report } from "../components/WebsiteChecker";
+import { OtpInput } from "../components/OtpInput";
+import { AuditSteps } from "../components/AuditSteps";
 
 type Allowance = {
   state: "available" | "running" | "completed";
   report?: Report;
 };
 export function AuditPage({ privateTest = false }: { privateTest?: boolean }) {
-  const [auth, setAuth] =
-    useState<Awaited<ReturnType<typeof getAuditAuth>>>(null);
   const configured = privateTest
     ? privateAuditAuthConfigured
     : auditAuthConfigured;
   const canUseGoogle = googleAuthEnabled && !privateTest;
+  const [auth, setAuth] =
+    useState<Awaited<ReturnType<typeof getAuditAuth>>>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [ready, setReady] = useState(!configured);
+  const [website, setWebsite] = useState("");
+  const [confirmedWebsite, setConfirmedWebsite] = useState("");
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [accountErrorCode, setAccountErrorCode] = useState("");
+  const [checkingAccount, setCheckingAccount] = useState(false);
+  const [allowance, setAllowance] = useState<Allowance | null>(null);
+  const [refresh, setRefresh] = useState(0);
+  const [scanning, setScanning] = useState(false);
+  const [resendUntil, setResendUntil] = useState(0);
+  const [resendSeconds, setResendSeconds] = useState(0);
+  const [websiteError, setWebsiteError] = useState("");
+  const accountOwner = useRef<string | null>(null);
+  const pendingAccountRequests = useRef(0);
+  const scanIntent = useRef<{ website: string; accountId: string } | null>(
+    null,
+  );
+  const scanPending = useRef(false);
+  const mounted = useRef(false);
+  const reportHeading = useRef<HTMLHeadingElement>(null);
+  const signInAlert = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    mounted.current = true;
+    let saved = "";
+    try {
+      saved = sessionStorage.getItem(websiteStorageKey) || "";
+    } catch {
+      /* In-memory journey still works. */
+    }
+    const query = new URLSearchParams(window.location.search).get("website");
+    if (query || saved) {
+      try {
+        const normalized = normalizeWebsite(query || saved);
+        setWebsite(normalized);
+        setConfirmedWebsite(normalized);
+      } catch {
+        setWebsiteError("Please enter the public website you want to check.");
+      }
+    }
+    return () => {
+      mounted.current = false;
+      scanIntent.current = null;
+    };
+  }, []);
   useEffect(() => {
     let alive = true;
     getAuditAuth(privateTest)
@@ -46,33 +101,14 @@ export function AuditPage({ privateTest = false }: { privateTest?: boolean }) {
       })
       .catch(() => {
         if (alive) {
-          setError("Online sign-in is temporarily unavailable.");
           setReady(true);
+          setError("Online sign-in is temporarily unavailable.");
         }
       });
     return () => {
       alive = false;
     };
   }, [privateTest]);
-  const [session, setSession] = useState<Session | null>(null);
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [sent, setSent] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [googleBusy, setGoogleBusy] = useState(false);
-  const [ready, setReady] = useState(!configured);
-  const [error, setError] = useState("");
-  const signInAlert = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (error && !session) signInAlert.current?.focus();
-  }, [error, session]);
-  const [allowance, setAllowance] = useState<Allowance | null>(null);
-  const [refresh, setRefresh] = useState(0);
-  const reportHeading = useRef<HTMLHeadingElement>(null);
-  useEffect(() => {
-    if (allowance?.state === "completed") reportHeading.current?.focus();
-  }, [allowance?.state]);
-
   useEffect(() => {
     if (!auth) {
       if (!configured) setReady(true);
@@ -84,7 +120,6 @@ export function AuditPage({ privateTest = false }: { privateTest?: boolean }) {
       .getSession()
       .then(({ data, error }) => {
         if (!alive) return;
-        // The SDK exchanges a PKCE code first. Only scrub it after getSession.
         window.history.replaceState(
           window.history.state,
           "",
@@ -121,59 +156,206 @@ export function AuditPage({ privateTest = false }: { privateTest?: boolean }) {
       data.subscription.unsubscribe();
     };
   }, [auth, configured]);
-
   useEffect(() => {
-    setAllowance(null);
-    if (!session) return;
+    if (!sent || !resendUntil) return;
+    const update = () =>
+      setResendSeconds(
+        Math.max(0, Math.ceil((resendUntil - Date.now()) / 1000)),
+      );
+    update();
+    const timer = window.setInterval(update, 1000);
+    return () => window.clearInterval(timer);
+  }, [sent, resendUntil]);
+  useEffect(() => {
+    if (error && !session) signInAlert.current?.focus();
+  }, [error, session]);
+  useEffect(() => {
+    if (allowance?.state === "completed") reportHeading.current?.focus();
+  }, [allowance?.state]);
+
+  // Read the server ledger before any scan, including after authentication.
+  useEffect(() => {
+    const owner = session?.user.id || null;
+    const accessToken = session?.access_token;
+    if (accountOwner.current !== owner) {
+      accountOwner.current = owner;
+      setAllowance(null);
+    }
+    if (!accessToken || scanning) return;
     const controller = new AbortController();
     let alive = true;
-    const timeout = setTimeout(() => {
-      if (alive) {
-        setError("Your account check took too long. Please try again.");
-        controller.abort();
-      }
-    }, 15000);
+    pendingAccountRequests.current += 1;
+    setCheckingAccount(true);
     setError("");
-    fetch("/api/check", {
-      headers: { Authorization: "Bearer " + session.access_token },
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        if (!response.headers.get("content-type")?.includes("application/json"))
-          throw new Error(
-            "Online audits are not available on this deployment yet.",
-          );
-        const result = await response.json();
-        if (!response.ok)
-          throw new Error(
-            result.error || "Your audit allowance could not be checked.",
-          );
+    setAccountErrorCode("");
+    const timer = setTimeout(() => controller.abort(), 15000);
+    requestAudit({ accessToken, signal: controller.signal })
+      .then((value) => {
+        const result = value as Allowance;
         if (
+          !result ||
           !["available", "running", "completed"].includes(result.state) ||
           (result.state === "completed" && !isReadinessReport(result.report))
         )
           throw new Error("Your saved audit could not be verified.");
-        clearTimeout(timeout);
-        if (alive) setAllowance(result);
+        if (alive) {
+          setAllowance(result);
+          setCheckingAccount(false);
+        }
       })
       .catch((error) => {
-        clearTimeout(timeout);
-        if (alive && error.name !== "AbortError")
-          setError(
-            error.message || "Your audit account is temporarily unavailable.",
+        if (alive) {
+          scanIntent.current = null;
+          setCheckingAccount(false);
+          setAccountErrorCode(
+            error instanceof AuditRequestError ? error.code : "",
           );
+          setError(
+            error instanceof Error
+              ? error.message
+              : "Your audit account is temporarily unavailable.",
+          );
+        }
+      })
+      .finally(() => {
+        clearTimeout(timer);
+        pendingAccountRequests.current = Math.max(
+          0,
+          pendingAccountRequests.current - 1,
+        );
       });
     return () => {
       alive = false;
-      clearTimeout(timeout);
+      clearTimeout(timer);
       controller.abort();
     };
-  }, [session, refresh]);
+  }, [session?.access_token, session?.user.id, refresh, scanning]);
 
+  // Intent is consumed synchronously before POST. StrictMode and token refresh
+  // cannot re-use it. Uncertain outcomes always return to the GET ledger path.
+  useEffect(() => {
+    if (!session || checkingAccount || scanning || scanPending.current) return;
+    if (allowance?.state === "completed" || allowance?.state === "running") {
+      scanIntent.current = null;
+      return;
+    }
+    const requested = consumeScanIntent(
+      scanIntent.current,
+      allowance?.state || "",
+      session.user.id,
+    );
+    if (requested) void runAudit(requested, session);
+  }, [allowance, checkingAccount, scanning, session]);
+
+  useEffect(() => {
+    if (allowance?.state !== "running" || scanning) return;
+    const timer = window.setInterval(() => {
+      if (
+        document.visibilityState === "visible" &&
+        pendingAccountRequests.current === 0
+      )
+        setRefresh((value) => value + 1);
+    }, 5000);
+    const stop = window.setTimeout(() => window.clearInterval(timer), 120000);
+    return () => {
+      window.clearInterval(timer);
+      window.clearTimeout(stop);
+    };
+  }, [allowance?.state, scanning]);
+
+  async function runAudit(url: string, current: Session) {
+    if (scanPending.current) return;
+    scanPending.current = true;
+    setScanning(true);
+    setError("");
+    try {
+      const report = await requestAudit({
+        accessToken: current.access_token,
+        website: url,
+        signal: AbortSignal.timeout(65000),
+      });
+      if (!isReadinessReport(report))
+        throw new Error(
+          "The report could not be verified. Check your saved status before trying again.",
+        );
+      if (mounted.current && accountOwner.current === current.user.id)
+        setAllowance({ state: "completed", report });
+    } catch (error) {
+      if (mounted.current && accountOwner.current === current.user.id) {
+        setAllowance(null);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "The audit was interrupted. Check your saved status.",
+        );
+        setRefresh((value) => value + 1);
+      }
+    } finally {
+      scanPending.current = false;
+      if (mounted.current) setScanning(false);
+    }
+  }
+  function rememberWebsite(normalized: string) {
+    setConfirmedWebsite(normalized);
+    setWebsite(normalized);
+    setWebsiteError("");
+    try {
+      sessionStorage.setItem(websiteStorageKey, normalized);
+    } catch {
+      /* Optional persistence. */
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set("website", normalized);
+    window.history.replaceState(
+      window.history.state,
+      "",
+      url.pathname + url.search + url.hash,
+    );
+  }
+  function confirmWebsite(event: FormEvent) {
+    event.preventDefault();
+    try {
+      rememberWebsite(normalizeWebsite(website));
+    } catch (error) {
+      setWebsiteError(
+        error instanceof Error ? error.message : "Check the website address.",
+      );
+    }
+  }
+  function recoverAudit() {
+    scanIntent.current = null;
+    setAllowance(null);
+    setRefresh((value) => value + 1);
+  }
+  async function sendCode() {
+    if (!auth || busy || googleBusy || (sent && resendSeconds > 0)) return;
+    setBusy(true);
+    setError("");
+    try {
+      const result = await auth.auth.signInWithOtp({ email: email.trim() });
+      if (result.error) throw new Error(signInErrorMessage(result.error));
+      setSent(true);
+      setCode("");
+      setResendSeconds(60);
+      setResendUntil(Date.now() + 60000);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Sign-in is temporarily unavailable.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
   async function signIn(event: FormEvent) {
     event.preventDefault();
     if (!auth || busy || googleBusy) return;
-    if (sent && !/^\d{8}$/.test(code.trim())) {
+    if (!sent) {
+      await sendCode();
+      return;
+    }
+    if (!/^\d{8}$/.test(code)) {
       setError(
         "Enter the full eight-digit code from your latest sign-in email.",
       );
@@ -182,16 +364,22 @@ export function AuditPage({ privateTest = false }: { privateTest?: boolean }) {
     setBusy(true);
     setError("");
     try {
-      const result = sent
-        ? await auth.auth.verifyOtp({
-            email: email.trim(),
-            token: code.trim(),
-            type: "email",
-          })
-        : await auth.auth.signInWithOtp({ email: email.trim() });
+      const result = await auth.auth.verifyOtp({
+        email: email.trim(),
+        token: code,
+        type: "email",
+      });
       if (result.error) throw new Error(signInErrorMessage(result.error, sent));
-      if (!sent) setSent(true);
+      if (result.data.session) {
+        scanIntent.current = {
+          website: confirmedWebsite,
+          accountId: result.data.session.user.id,
+        };
+        setSession(result.data.session);
+        setRefresh((value) => value + 1);
+      }
     } catch (error) {
+      scanIntent.current = null;
       setError(
         error instanceof Error
           ? error.message
@@ -219,9 +407,10 @@ export function AuditPage({ privateTest = false }: { privateTest?: boolean }) {
     }
   }
   async function signOut() {
-    if (!auth) return;
+    if (!auth || scanPending.current) return;
     setBusy(true);
     setError("");
+    scanIntent.current = null;
     try {
       const { error } = await auth.auth.signOut({ scope: "local" });
       if (error) throw error;
@@ -229,294 +418,376 @@ export function AuditPage({ privateTest = false }: { privateTest?: boolean }) {
       setAllowance(null);
       setCode("");
       setSent(false);
+      setResendUntil(0);
     } catch {
       setError("We could not sign you out. Please try again.");
     } finally {
       setBusy(false);
     }
   }
+  const running = scanning || allowance?.state === "running";
+  const completed = allowance?.state === "completed" && allowance.report;
+  const step = completed
+    ? 4
+    : running || (session && checkingAccount)
+      ? 3
+      : !confirmedWebsite
+        ? 0
+        : !session
+          ? sent
+            ? 2
+            : 1
+          : 3;
   return (
     <>
-      <section className="page-hero container" aria-labelledby="audit-heading">
+      <section
+        className="container audit-heading"
+        aria-labelledby="audit-heading"
+      >
         <p className="eyebrow">
           {privateTest
             ? "PRIVATE LAUNCH VERIFICATION"
-            : "AEO / GEO READINESS · ONE FREE AUDIT"}
+            : "YOUR FIRST CHECK, ON US"}
         </p>
-        <h1 id="audit-heading">
-          Start with what
-          <br />
-          your website tells us.
-        </h1>
-        <p className="page-intro">
-          A homepage assessment with evidence you can inspect, a checklist you
-          can understand, and practical next steps. No made-up visibility score.
+        <h1 id="audit-heading">ContextLumen Website Audit</h1>
+        <p>
+          A clear look at your homepage, with evidence, priorities, and a report
+          to keep.
         </p>
+        <AuditSteps step={step} />
         {privateTest && (
-          <p className="form-note" role="note">
-            Owner-only verification. Signing in does not grant audit access. The
-            server permits only approved test accounts during a time-limited
-            test window.
+          <p className="form-note">
+            Owner-only verification. The server still requires an approved test
+            account and active test window.
           </p>
         )}
-        <div className="page-meta">
-          <span>
-            <ShieldCheck size={17} aria-hidden="true" /> Public pages only
-          </span>
-          <span>No changes to your site</span>
-          <span>One successful audit per verified account</span>
-        </div>
-        <div className="page-resource-links">
-          <a className="text-link" href="/sample-report">
-            See what the audit checks{" "}
-            <ArrowUpRight size={17} aria-hidden="true" />
-          </a>
-          <a className="text-link" href="/methodology">
-            Read our methodology <ArrowUpRight size={17} aria-hidden="true" />
-          </a>
-        </div>
       </section>
       <section
-        className="account-section container"
+        className="container account-section"
         aria-label="Free audit account"
       >
-        {!ready ? (
-          <p role="status">Preparing secure sign-in…</p>
-        ) : !auth ? (
-          <div className="account-layout">
-            <div className="account-panel">
-              <span className="icon-box">
-                <Mail size={23} aria-hidden="true" />
-              </span>
-              <h2 id="account-heading">Your audit is being prepared.</h2>
-              <p>
-                We’re finishing secure sign-in and saved reports before opening
-                self-service audits. You’ll be able to enter a public website,
-                review the evidence, and return to your report from the same
-                account.
-              </p>
-              <a className="button button-dark" href={contactEmailUrl}>
-                Contact us while we finish{" "}
-                <ArrowUpRight size={17} aria-hidden="true" />
-              </a>
-              <p className="form-note">
-                This link opens your email app. No message is sent
-                automatically.
-              </p>
-              <a
-                className="text-link account-sample-link"
-                href="/sample-report"
-              >
-                Review the audit scope{" "}
-                <ArrowUpRight size={17} aria-hidden="true" />
-              </a>
+        {session && (
+          <div className="account-toolbar">
+            <div>
+              <p className="micro">YOUR AUDIT ACCOUNT</p>
+              <h2>{session.user.email}</h2>
             </div>
-            <AuditScope />
+            <button
+              className="button button-outline"
+              type="button"
+              onClick={signOut}
+              disabled={busy || scanning}
+            >
+              <LogOut size={16} aria-hidden="true" /> Sign out
+            </button>
           </div>
-        ) : !session ? (
+        )}
+        {completed ? (
+          <>
+            <h2
+              ref={reportHeading}
+              tabIndex={-1}
+              className="checker-result-announcement"
+            >
+              Your saved report
+            </h2>
+            <div className="saved-report-note">
+              <ShieldCheck size={21} aria-hidden="true" />
+              <p>
+                This is your saved audit, not a new scan. Your one successful
+                free audit has been used.{" "}
+                <a href="/book">Discuss a broader review.</a>
+              </p>
+            </div>
+            <Results report={completed} />
+          </>
+        ) : running ? (
+          <ScanState
+            checking={checkingAccount}
+            onRecover={recoverAudit}
+            scanning={scanning}
+          />
+        ) : (
           <div className="account-layout">
             <div className="account-panel">
-              <p className="micro">
-                {privateTest ? "VERIFY THE LAUNCH WORKFLOW" : "YOUR FREE AUDIT"}
-              </p>
-              <h2 id="account-heading">
-                {sent ? "Check your inbox." : "A report worth keeping."}
-              </h2>
-              <p>
-                {sent
-                  ? "Enter the eight-digit sign-in code sent to your email. It expires in ten minutes."
-                  : "Verify your email to use your free audit and return to your saved report."}
-              </p>
-              {!sent && canUseGoogle && (
+              {!confirmedWebsite ? (
                 <>
-                  <button
-                    type="button"
-                    className="google-sign-in"
-                    aria-label="Sign in with Google"
-                    aria-busy={googleBusy}
-                    onClick={signInWithGoogle}
-                    disabled={busy || googleBusy}
-                  >
-                    <img
-                      src="/google-sign-in.svg"
-                      width="180"
-                      height="40"
-                      alt=""
+                  <span className="icon-box">
+                    <Globe2 size={23} aria-hidden="true" />
+                  </span>
+                  <h2>Start with your website.</h2>
+                  <p>
+                    We inspect the public HTTPS homepage and its crawl rules.
+                    Nothing on your website is changed.
+                  </p>
+                  <form className="account-form" onSubmit={confirmWebsite}>
+                    <label htmlFor="audit-website">
+                      Public website address
+                    </label>
+                    <input
+                      id="audit-website"
+                      inputMode="url"
+                      autoComplete="url"
+                      placeholder="yourbusiness.com"
+                      required
+                      maxLength={500}
+                      value={website}
+                      onChange={(event) => {
+                        setWebsite(event.target.value);
+                        setWebsiteError("");
+                      }}
+                      aria-invalid={Boolean(websiteError)}
+                      aria-describedby="website-help"
                     />
-                  </button>
-                  {googleBusy && (
-                    <p className="form-note" role="status">
-                      Connecting to Google…
+                    <p id="website-help" className="form-note">
+                      Any page address is normalized to its homepage. Submit a
+                      site you own, manage, or have permission to assess.
                     </p>
-                  )}
-                  <div className="sign-in-divider">
-                    <span>or continue with email</span>
+                    {websiteError && (
+                      <p role="alert" className="account-error">
+                        {websiteError}
+                      </p>
+                    )}
+                    <button className="button button-dark" type="submit">
+                      Continue <ArrowRight size={17} aria-hidden="true" />
+                    </button>
+                  </form>
+                  <p className="form-note">
+                    Already have a report? Enter your website, then sign in with
+                    the same email to reopen it.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="website-summary">
+                    <Globe2 size={21} aria-hidden="true" />
+                    <div>
+                      <small>YOUR HOMEPAGE</small>
+                      <strong>{confirmedWebsite}</strong>
+                    </div>
+                    <button
+                      type="button"
+                      className="text-link"
+                      disabled={busy || checkingAccount}
+                      onClick={() => {
+                        setConfirmedWebsite("");
+                        setError("");
+                        scanIntent.current = null;
+                      }}
+                    >
+                      Change
+                    </button>
                   </div>
+                  {!ready ? (
+                    <p role="status">Preparing secure sign-in…</p>
+                  ) : !auth ? (
+                    <>
+                      <h2>
+                        {configured
+                          ? "Sign-in is unavailable."
+                          : "Self-service is being prepared."}
+                      </h2>
+                      <p>
+                        Your allowance has not changed. Please reload or contact
+                        our team.
+                      </p>
+                      <a className="button" href={contactEmailUrl}>
+                        Contact ContextLumen{" "}
+                        <ArrowUpRight size={17} aria-hidden="true" />
+                      </a>
+                    </>
+                  ) : !session ? (
+                    <>
+                      <p className="micro">
+                        {sent ? "VERIFY YOUR EMAIL" : "SAVE YOUR REPORT"}
+                      </p>
+                      <h2>
+                        {sent
+                          ? "Check your inbox."
+                          : "Where should we save it?"}
+                      </h2>
+                      <p>
+                        {sent
+                          ? "Enter the eight-digit code sent to " + email + "."
+                          : "Verify your email to run the audit and return to your saved results."}
+                      </p>
+                      {!sent && canUseGoogle && (
+                        <>
+                          <button
+                            className="google-sign-in"
+                            type="button"
+                            onClick={signInWithGoogle}
+                            disabled={busy || googleBusy}
+                            aria-label="Sign in with Google"
+                            aria-busy={googleBusy}
+                          >
+                            <img
+                              src="/google-sign-in.svg"
+                              width="180"
+                              height="40"
+                              alt=""
+                            />
+                          </button>
+                          <p className="sign-in-divider">
+                            or continue with email
+                          </p>
+                        </>
+                      )}
+                      <form
+                        onSubmit={signIn}
+                        className="account-form"
+                        noValidate={sent}
+                      >
+                        <label
+                          htmlFor="audit-email"
+                          className={sent ? "sr-only" : undefined}
+                        >
+                          Email address
+                        </label>
+                        <input
+                          id="audit-email"
+                          className={sent ? "sr-only" : undefined}
+                          type="email"
+                          autoComplete="email"
+                          required
+                          maxLength={254}
+                          value={email}
+                          onChange={(event) => {
+                            setEmail(event.target.value);
+                            setError("");
+                          }}
+                          disabled={busy || googleBusy || sent}
+                        />
+                        {sent && (
+                          <>
+                            <label htmlFor="audit-code">
+                              Eight-digit sign-in code
+                            </label>
+                            <OtpInput
+                              value={code}
+                              onChange={(value) => {
+                                setCode(value);
+                                setError("");
+                              }}
+                              disabled={busy}
+                              error={Boolean(error)}
+                            />
+                            <p className="form-note" id="otp-help">
+                              Use your newest code. It expires in ten minutes.
+                              You can paste all eight digits at once.
+                            </p>
+                          </>
+                        )}
+                        {error && (
+                          <div
+                            id="audit-signin-alert"
+                            className="account-error signin-alert"
+                            role="alert"
+                            tabIndex={-1}
+                            ref={signInAlert}
+                          >
+                            <AlertCircle size={20} aria-hidden="true" />
+                            <div>
+                              <strong>
+                                {sent
+                                  ? "Code not verified"
+                                  : "Sign-in needs attention"}
+                              </strong>
+                              <p>{error}</p>
+                            </div>
+                          </div>
+                        )}
+                        <button
+                          type="submit"
+                          className="button button-dark"
+                          disabled={busy || googleBusy}
+                          aria-busy={busy}
+                        >
+                          {busy && (
+                            <LoaderCircle
+                              size={17}
+                              className="checker-spin"
+                              aria-hidden="true"
+                            />
+                          )}
+                          {busy
+                            ? "Please wait"
+                            : sent
+                              ? "Verify and run audit"
+                              : "Send my sign-in code"}
+                          {!busy && <ArrowRight size={17} aria-hidden="true" />}
+                        </button>
+                        {sent && (
+                          <div className="signin-recovery">
+                            <button
+                              type="button"
+                              className="text-link"
+                              disabled={busy || resendSeconds > 0}
+                              onClick={sendCode}
+                            >
+                              {resendSeconds > 0
+                                ? `New code in ${resendSeconds}s`
+                                : "Send a new code"}
+                            </button>
+                            <button
+                              type="button"
+                              className="text-link"
+                              disabled={busy}
+                              onClick={() => {
+                                setSent(false);
+                                setCode("");
+                                setError("");
+                              }}
+                            >
+                              Change email
+                            </button>
+                          </div>
+                        )}
+                      </form>
+                      <p className="form-note">
+                        One successful audit per verified account. Sign-in does
+                        not subscribe you to marketing emails. By continuing,
+                        review our <a href="/privacy">privacy notice</a> and{" "}
+                        <a href="/terms">audit terms</a>.
+                      </p>
+                    </>
+                  ) : checkingAccount || !allowance ? (
+                    <>
+                      <h2>Checking your saved status.</h2>
+                      <p role="status">
+                        We confirm your account’s allowance before starting any
+                        collection.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h2>Ready for your first audit.</h2>
+                      <p>
+                        We will check crawl access, indexing and previews, page
+                        information, and structured data on this homepage.
+                      </p>
+                      <button
+                        className="button button-dark"
+                        type="button"
+                        disabled={busy || checkingAccount}
+                        onClick={() => {
+                          scanIntent.current = null;
+                          void runAudit(confirmedWebsite, session);
+                        }}
+                      >
+                        Run my free audit{" "}
+                        <ArrowRight size={17} aria-hidden="true" />
+                      </button>
+                      <p className="form-note">
+                        This uses your one successful free audit. A failed
+                        technical scan does not consume it.
+                      </p>
+                    </>
+                  )}
                 </>
               )}
-              <form onSubmit={signIn} className="account-form">
-                <label htmlFor="audit-email">Email address</label>
-                <input
-                  id="audit-email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  maxLength={254}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={busy || googleBusy || sent}
-                />
-                {sent && (
-                  <>
-                    <label htmlFor="audit-code">Eight-digit sign-in code</label>
-                    <input
-                      id="audit-code"
-                      autoFocus
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      pattern="[0-9]{8}"
-                      maxLength={8}
-                      aria-invalid={Boolean(error)}
-                      aria-describedby={
-                        error ? "audit-signin-alert" : undefined
-                      }
-                      onInvalid={(event) => {
-                        event.preventDefault();
-                        setError(
-                          "Enter the full eight-digit code from your latest sign-in email.",
-                        );
-                      }}
-                      required
-                      value={code}
-                      onChange={(e) => {
-                        setCode(e.target.value.replace(/\D/g, ""));
-                        setError("");
-                      }}
-                      disabled={busy}
-                    />
-                  </>
-                )}
-                {error && (
-                  <div
-                    id="audit-signin-alert"
-                    className="account-error signin-alert"
-                    role="alert"
-                    tabIndex={-1}
-                    ref={signInAlert}
-                  >
-                    <AlertCircle size={20} aria-hidden="true" />
-                    <div>
-                      <strong>
-                        {sent ? "Code not verified" : "Sign-in needs attention"}
-                      </strong>
-                      <p>{error}</p>
-                    </div>
-                  </div>
-                )}
-                <button
-                  type="submit"
-                  className="button button-dark"
-                  disabled={busy || googleBusy}
-                >
-                  {busy && (
-                    <LoaderCircle
-                      size={17}
-                      className="checker-spin"
-                      aria-hidden="true"
-                    />
-                  )}
-                  {busy
-                    ? "Please wait"
-                    : sent
-                      ? "Verify and continue"
-                      : "Send a sign-in code"}
-                </button>
-                {sent && (
-                  <button
-                    type="button"
-                    className="text-link"
-                    disabled={busy}
-                    onClick={() => {
-                      setSent(false);
-                      setCode("");
-                      setError("");
-                    }}
-                  >
-                    Use another email or request a new code
-                  </button>
-                )}
-              </form>
-              <p className="form-note">
-                Your email is used for sign-in and your audit account. This does
-                not subscribe you to marketing emails. Read our{" "}
-                <a href="/privacy">privacy notice</a> and{" "}
-                <a href="/terms">audit terms</a> before continuing.
-              </p>
             </div>
             <AuditScope />
-          </div>
-        ) : (
-          <div>
-            <div className="account-toolbar">
-              <div>
-                <p className="micro">YOUR AUDIT ACCOUNT</p>
-                <h2 id="account-heading">{session.user.email}</h2>
-              </div>
-              <button
-                type="button"
-                className="button button-outline"
-                onClick={signOut}
-                disabled={busy}
-              >
-                <LogOut size={17} aria-hidden="true" /> Sign out
-              </button>
-            </div>
-            {!allowance && !error && (
-              <p role="status">Checking your audit allowance…</p>
-            )}
-            {allowance?.state === "running" && (
-              <div className="account-panel">
-                <h3>Your audit is in progress.</h3>
-                <p>
-                  Give it a moment, then check again. A second audit cannot
-                  start while this one is running.
-                </p>
-                <button
-                  className="button button-outline"
-                  onClick={() => setRefresh((x) => x + 1)}
-                >
-                  Check status
-                </button>
-              </div>
-            )}
-            {allowance?.state === "completed" && allowance.report && (
-              <>
-                <h2
-                  className="checker-result-announcement"
-                  tabIndex={-1}
-                  ref={reportHeading}
-                >
-                  Your audit report
-                </h2>
-                <div className="saved-report-note">
-                  <CheckSaved />
-                  <p>
-                    Your free audit has been used. This is your saved report,
-                    not a new scan. For a broader review or a follow-up
-                    assessment, <a href="/book">talk to the team</a>.
-                  </p>
-                </div>
-                <Results report={allowance.report} />
-              </>
-            )}
-            {allowance?.state === "available" && (
-              <WebsiteChecker
-                accessToken={session.access_token}
-                onComplete={(report) =>
-                  setAllowance({ state: "completed", report })
-                }
-              />
-            )}
           </div>
         )}
         {error && (session || !auth) && (
@@ -526,70 +797,117 @@ export function AuditPage({ privateTest = false }: { privateTest?: boolean }) {
               <button
                 className="text-link"
                 type="button"
-                onClick={() => setRefresh((x) => x + 1)}
+                onClick={
+                  accountErrorCode === "SIGN_IN_REQUIRED"
+                    ? signOut
+                    : recoverAudit
+                }
+                disabled={checkingAccount || busy || scanning}
               >
-                Try checking your account again
+                {accountErrorCode === "SIGN_IN_REQUIRED"
+                  ? "Sign in again"
+                  : "Check saved audit status"}
               </button>
             )}
           </div>
         )}
       </section>
       <section className="container audit-boundary">
-        <h2>A useful first check. Not the whole picture.</h2>
+        <h2>Technical readiness. A useful starting point.</h2>
         <p>
-          This audit inspects a public homepage and crawl rules. It does not
-          measure live ChatGPT, Gemini, or Perplexity mentions, site-wide
-          performance, or rankings. A visibility study needs an agreed set of
-          buyer questions, dated answers, and a repeatable comparison.
+          This audit does not measure ChatGPT, Gemini, or Perplexity mentions,
+          rankings, or recommendations. Actual AI visibility requires a separate
+          study of buyer questions and dated answers.
         </p>
-        <a className="text-link" href="/#process">
-          See how our full projects work{" "}
-          <ArrowUpRight size={17} aria-hidden="true" />
-        </a>
+        <div className="page-resource-links">
+          <a className="text-link" href="/methodology">
+            Read the methodology <ArrowUpRight size={16} aria-hidden="true" />
+          </a>
+          <a className="text-link" href="/sample-report">
+            Explore the audit <ArrowRight size={16} aria-hidden="true" />
+          </a>
+        </div>
       </section>
     </>
   );
 }
-function CheckSaved() {
-  return <ShieldCheck size={22} aria-hidden="true" />;
+function ScanState({
+  checking,
+  onRecover,
+  scanning,
+}: {
+  checking: boolean;
+  onRecover: () => void;
+  scanning: boolean;
+}) {
+  return (
+    <div className="account-panel scan-state">
+      <div className="scan-light" aria-hidden="true">
+        <img src="/logo.svg" width="43" height="43" alt="" />
+      </div>
+      <p className="micro">
+        {scanning ? "COLLECTING YOUR HOMEPAGE" : "RECOVERING YOUR AUDIT"}
+      </p>
+      <h2>
+        {scanning ? "Looking at the evidence." : "Your audit is in progress."}
+      </h2>
+      <p role="status">
+        {scanning
+          ? "Retrieving the homepage and crawl rules, then reviewing the returned HTML. This can take up to a minute."
+          : "We check your saved status while this tab is visible, for up to two minutes. No new scan is started."}
+      </p>
+      <p className="form-note">
+        Your report is saved to your account when complete.
+      </p>
+      {!scanning && (
+        <button
+          className="button button-outline"
+          type="button"
+          onClick={onRecover}
+          disabled={checking}
+        >
+          {checking ? "Checking status" : "Check saved status"}
+        </button>
+      )}
+    </div>
+  );
 }
 function AuditScope() {
   return (
     <aside className="account-scope">
-      <p className="micro">WHAT THE CHECK COVERS</p>
+      <p className="micro">WHAT YOU’LL RECEIVE</p>
       <h2>
-        The fundamentals,
+        The findings.
         <br />
-        with the evidence attached.
+        And what to do with them.
       </h2>
       <ol>
-        <li>
-          <span>01</span>
-          <div>
-            <h3>Crawl and indexing rules</h3>
-            <p>
-              Robots policies and page-level controls that may affect discovery.
-            </p>
-          </div>
-        </li>
-        <li>
-          <span>02</span>
-          <div>
-            <h3>Readable page information</h3>
-            <p>Initial HTML, headings, metadata, and structured-data syntax.</p>
-          </div>
-        </li>
-        <li>
-          <span>03</span>
-          <div>
-            <h3>A practical next step</h3>
-            <p>Observed signals, items to review, and an exportable report.</p>
-          </div>
-        </li>
+        {[
+          {
+            title: "Four areas, clearly explained",
+            text: "Crawl access, indexing and previews, page information, and structured data.",
+          },
+          {
+            title: "Evidence you can inspect",
+            text: "Observed signals, items to review, and notes with their source guidance.",
+          },
+          {
+            title: "A report worth keeping",
+            text: "Practical next steps, a branded PDF, and saved results when you return.",
+          },
+        ].map((item, index) => (
+          <li key={item.title}>
+            <span>0{index + 1}</span>
+            <div>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </div>
+          </li>
+        ))}
       </ol>
       <p>
-        Failed technical checks do not consume the free audit. Your saved report
-        remains available when you sign back in.
+        Public homepage only. No site changes. No paid ad campaign. Failed
+        technical checks do not consume your allowance.
       </p>
     </aside>
   );

@@ -1,4 +1,5 @@
 import { ArrowRight, Check, FileSearch, ShieldCheck } from "lucide-react";
+import { AuditPreview } from "../components/AuditPreview";
 
 const selfServeAuditAvailable = import.meta.env.VITE_AUDIT_ENABLED === "true";
 
@@ -23,7 +24,10 @@ const checks = [
 export function SampleReportPage() {
   return (
     <>
-      <section className="container page-hero" aria-labelledby="audit-preview-heading">
+      <section
+        className="container page-hero"
+        aria-labelledby="audit-preview-heading"
+      >
         <p className="eyebrow">A TRANSPARENT FIRST CHECK</p>
         <h1 id="audit-preview-heading">
           Know what the audit checks.
@@ -31,9 +35,9 @@ export function SampleReportPage() {
           Know what it doesn’t.
         </h1>
         <p className="page-intro">
-          We don’t publish invented client results or pretend a checklist can
-          measure AI visibility. Here is the exact scope of the free homepage
-          check and what a real report will contain.
+          Explore how a website observation becomes a practical action. The
+          preview below is illustrative. Your audit uses the evidence returned
+          from your public homepage.
         </p>
         <div className="page-resource-links">
           <a className="button button-dark" href="/audit">
@@ -48,6 +52,12 @@ export function SampleReportPage() {
         </div>
       </section>
 
+      <section
+        className="container example-preview"
+        aria-label="Interactive illustrative audit"
+      >
+        <AuditPreview />
+      </section>
       <section className="container audit-overview" aria-label="Audit scope">
         <div className="audit-overview-copy">
           <p className="micro">THREE THINGS, CHECKED AGAINST THE PAGE</p>
@@ -110,7 +120,9 @@ export function SampleReportPage() {
       <section className="container audit-overview-cta">
         <div>
           <p className="micro">
-            {selfServeAuditAvailable ? "YOUR FIRST CHECK" : "SELF-SERVICE STATUS"}
+            {selfServeAuditAvailable
+              ? "YOUR FIRST CHECK"
+              : "SELF-SERVICE STATUS"}
           </p>
           <h2>One verified account. One saved homepage audit.</h2>
           <p>

@@ -10,3 +10,4 @@ output/pdf/
 .env.*
 !.env.example
 *.tar.gz
+.vercel/

@@ -6,10 +6,10 @@ import sample from "../src/data/sample-report.json" with { type: "json" };
 
 const options = {
   regularFontBase64: readFileSync(
-    new URL("../public/report-fonts/Lato-Regular.ttf", import.meta.url),
+    new URL("../public/report-fonts/Inter-Regular.ttf", import.meta.url),
   ).toString("base64"),
   boldFontBase64: readFileSync(
-    new URL("../public/report-fonts/Lato-Bold.ttf", import.meta.url),
+    new URL("../public/report-fonts/Inter-Bold.ttf", import.meta.url),
   ).toString("base64"),
   logoPng: {
     data: new Uint8ClampedArray([255, 255, 255, 255]),
@@ -29,7 +29,7 @@ test("PDF uses the validated saved report, embedded typography and dated site fi
   );
   assert(doc.output().startsWith("%PDF-"));
   assert.match(doc.output(), /\/FontFile2/);
-  assert.deepEqual(doc.getFontList().Lato, ["normal", "bold"]);
+  assert.deepEqual(doc.getFontList().Inter, ["normal", "bold"]);
   assert(doc.getNumberOfPages() >= 4);
   assert.equal(layout.length, doc.getNumberOfPages());
   assert.deepEqual(report, before);

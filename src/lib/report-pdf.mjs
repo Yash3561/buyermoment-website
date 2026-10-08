@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import { isReadinessReport } from "./audit-flow.mjs";
+import { summarizeAudit } from "./audit-summary.mjs";
 
 const brand = {
   name: "ContextLumen",
@@ -35,16 +36,17 @@ export function createReportPdf(
     );
   if (!regularFontBase64 || !boldFontBase64 || !logoPng)
     throw new Error("Report assets are unavailable. Please try again.");
+  const summary = summarizeAudit(report);
   const doc = new jsPDF({
     unit: "mm",
     format: "a4",
     compress: true,
     putOnlyUsedFonts: true,
   });
-  doc.addFileToVFS("Lato-Regular.ttf", regularFontBase64);
-  doc.addFont("Lato-Regular.ttf", "Lato", "normal");
-  doc.addFileToVFS("Lato-Bold.ttf", boldFontBase64);
-  doc.addFont("Lato-Bold.ttf", "Lato", "bold");
+  doc.addFileToVFS("Inter-Regular.ttf", regularFontBase64);
+  doc.addFont("Inter-Regular.ttf", "Inter", "normal");
+  doc.addFileToVFS("Inter-Bold.ttf", boldFontBase64);
+  doc.addFont("Inter-Bold.ttf", "Inter", "bold");
   const host = new URL(report.finalUrl).hostname;
   const day = new Date(report.checkedAt).toISOString().slice(0, 10);
   doc.setProperties({
@@ -58,7 +60,7 @@ export function createReportPdf(
   let y = 0;
   const layout = [];
   function font(size = 10.5, bold = false, color = colors.ink) {
-    doc.setFont("Lato", bold ? "bold" : "normal");
+    doc.setFont("Inter", bold ? "bold" : "normal");
     doc.setFontSize(size);
     doc.setTextColor(color);
   }
@@ -141,11 +143,11 @@ export function createReportPdf(
       : "A dated view of what your homepage makes available.",
     { size: 9, bold: true, color: colors.muted, gap: 8 },
   );
-  paragraph("Website readiness", { size: 32, bold: true, gap: 2 });
-  paragraph("Evidence. Priorities. A practical next step.", {
-    size: 15,
+  paragraph("Website Audit", { size: 32, bold: true, gap: 2 });
+  paragraph(summary.headline, {
+    size: 14,
     color: colors.muted,
-    gap: 10,
+    gap: 8,
   });
   paragraph(host, { size: 23, bold: true, gap: 4 });
   link(report.finalUrl, report.finalUrl);
@@ -193,16 +195,57 @@ export function createReportPdf(
   );
   page();
   section("01 / Decision brief", "Where to start");
-  const priorities = report.findings
-    .filter((f) => f.status === "review")
-    .sort((a, b) => a.priority - b.priority)
-    .slice(0, 3);
-  paragraph(
-    priorities.length
-      ? "Review these observed issues before commissioning broader changes. Priorities reflect this checklist, not measured business impact."
-      : "No review items were flagged by the inspected checklist. That is not proof of complete site readiness or visibility in AI answers.",
-    { color: colors.muted, gap: 9 },
+  const priorities = summary.priorities;
+  paragraph(summary.headline, { size: 15, bold: true, gap: 4 });
+  paragraph(summary.explanation, { color: colors.muted, gap: 8 });
+  paragraph("CHECKLIST RESULTS BY AREA", {
+    size: 8,
+    bold: true,
+    color: colors.muted,
+    gap: 4,
+  });
+  const columns = [18, 101, 127, 151, 174];
+  const tableRow = (values, header = false) => {
+    const rowHeight = 9;
+    ensure(rowHeight + 2);
+    doc.setFillColor(header ? colors.paper : "#ffffff");
+    doc.rect(18, y - 6, width, rowHeight, "F");
+    doc.setDrawColor(colors.line);
+    doc.line(18, y + 3, 192, y + 3);
+    values.forEach((value, index) => {
+      const x = columns[index] + (index ? 2 : 2);
+      const cellWidth = columns[index + 1] - columns[index] - 4;
+      font(header ? 8 : 9, header);
+      const cellLines = doc.splitTextToSize(clean(String(value)), cellWidth);
+      line(
+        cellLines[0] || "",
+        x,
+        y,
+        header ? 8 : 9,
+        header,
+        header ? colors.muted : colors.ink,
+      );
+    });
+    y += rowHeight;
+  };
+  tableRow(["Area checked", "Observed", "Review", "Notes"], true);
+  summary.areas.forEach((area) =>
+    tableRow([area.name, area.observed, area.review, area.notes]),
   );
+  y += 4;
+  paragraph(
+    "Counts summarize this checklist only. They are not rankings, a readiness grade, or a percentage of AI visibility.",
+    { size: 9, color: colors.muted, gap: 6 },
+  );
+  paragraph(
+    "Observed means the signal was present. Review means it needs investigation. Informational means context, not a failure.",
+    { size: 9, color: colors.muted, gap: 6 },
+  );
+  paragraph("ACTUAL AI VISIBILITY: " + summary.visibility, {
+    size: 10,
+    bold: true,
+    gap: 7,
+  });
   if (!priorities.length)
     paragraph(
       "Next: agree the audience and questions to test, then establish a separate AI-answer visibility baseline.",
@@ -222,12 +265,7 @@ export function createReportPdf(
       gap: 8,
     });
   });
-  ensure(58);
-  y += 5;
-  section("A separate next step", "Measure actual answers");
-  paragraph(
-    "Agree a focused set of buyer or student questions, platforms and dates. Record answers, mentions and source citations, then repeat the same tests after approved changes. This assessment is a starting point, not a before-and-after visibility study.",
-  );
+  y += 2;
   link("Discuss a focused review with ContextLumen", brand.url + "/book");
   page();
   section("02 / Evidence register", "The findings, in full");
@@ -258,15 +296,12 @@ export function createReportPdf(
       bold: true,
       gap: 2,
     });
-    paragraph(
-      `${labels[finding.status]} / checklist priority ${finding.priority}`,
-      {
-        size: 8.5,
-        bold: true,
-        color: finding.status === "review" ? colors.review : colors.muted,
-        gap: 5,
-      },
-    );
+    paragraph(labels[finding.status], {
+      size: 8.5,
+      bold: true,
+      color: finding.status === "review" ? colors.review : colors.muted,
+      gap: 5,
+    });
     fields.forEach(([label, text]) => {
       ensure(17);
       paragraph(label, { size: 8, bold: true, color: colors.muted, gap: 1 });
@@ -375,8 +410,8 @@ async function loadAssets() {
         image.src = "/logo.svg";
       });
       const [regularFontBase64, boldFontBase64, logoPng] = await Promise.all([
-        font("Lato-Regular.ttf"),
-        font("Lato-Bold.ttf"),
+        font("Inter-Regular.ttf"),
+        font("Inter-Bold.ttf"),
         logo,
       ]);
       return { regularFontBase64, boldFontBase64, logoPng };

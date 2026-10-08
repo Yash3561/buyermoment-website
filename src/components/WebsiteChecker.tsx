@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ArrowUpRight,
   ArrowRight,
@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { site, contactEmailUrl } from "../content";
 import { isReadinessReport } from "../lib/audit-flow.mjs";
+import { requestAudit } from "../lib/audit-request.mjs";
+import { summarizeAudit } from "../lib/audit-summary.mjs";
 
 type Finding = {
   id: string;
@@ -65,10 +67,8 @@ export function Results({
       setExporting(false);
     }
   }
-  const priorities = report.findings
-    .filter((f) => f.status === "review")
-    .sort((a, b) => a.priority - b.priority)
-    .slice(0, 3);
+  const summary = summarizeAudit(report);
+  const priorities = summary.priorities;
   const email =
     "mailto:" +
     site.email +
@@ -141,6 +141,45 @@ export function Results({
           {exportError}
         </p>
       )}
+      <section className="report-conclusion" aria-label="Audit conclusion">
+        <p className="micro">WHAT WE FOUND</p>
+        <h4>{summary.headline}</h4>
+        <p>{summary.explanation}</p>
+        <p className="form-note">
+          <strong>Scope:</strong> {report.scope}
+        </p>
+        <a
+          className="text-link"
+          href={
+            "/book?website=" +
+            encodeURIComponent(report.finalUrl) +
+            "&auditDate=" +
+            encodeURIComponent(report.checkedAt)
+          }
+        >
+          Discuss my findings <ArrowUpRight size={16} aria-hidden="true" />
+        </a>
+      </section>
+      <div className="report-areas" aria-label="Category summaries">
+        {summary.areas.map((area) => (
+          <article key={area.name}>
+            <h4>{area.name}</h4>
+            <span
+              className={"status-tag " + (area.review ? "review" : "observed")}
+            >
+              {area.review
+                ? `${area.review} to review`
+                : area.notes
+                  ? "Includes a note"
+                  : "Signals observed"}
+            </span>
+            <p>
+              {area.observed} observed · {area.review} review · {area.notes}{" "}
+              notes
+            </p>
+          </article>
+        ))}
+      </div>
       <div className="report-counts">
         <div>
           <strong>{report.summary.observed}</strong>
@@ -196,6 +235,51 @@ export function Results({
           )}
         </ol>
       </div>
+      <section
+        className="report-overview"
+        aria-labelledby="report-overview-title"
+      >
+        <p className="micro">YOUR RESULTS, AT A GLANCE</p>
+        <h4 id="report-overview-title">The checklist, by area.</h4>
+        <div
+          className="report-table-scroll"
+          role="region"
+          aria-label="Checklist results by area"
+          tabIndex={0}
+        >
+          <table className="report-overview-table">
+            <caption>
+              Each check is counted once. These are not rankings or a visibility
+              score.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Area checked</th>
+                <th scope="col">Observed</th>
+                <th scope="col">Review</th>
+                <th scope="col">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {summary.areas.map((area) => (
+                <tr key={area.name}>
+                  <th scope="row">{area.name}</th>
+                  <td>{area.observed}</td>
+                  <td>{area.review}</td>
+                  <td>{area.notes}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="report-visibility-boundary">
+          <strong>
+            Actual AI visibility: {summary.visibility.toLowerCase()}.
+          </strong>{" "}
+          A separate buyer-question study is needed to measure mentions and
+          citations.
+        </p>
+      </section>
       <div className="finding-list">
         {report.findings.map((f) => (
           <details className="finding" key={f.id}>
@@ -318,18 +402,31 @@ export function Results({
           <span className="micro">FROM A CHECK TO A PLAN</span>
           <h4>Want help with what comes next?</h4>
           <p>
-            The deeper work connects these findings to buyer questions,
-            competitor comparisons, and your business goals. We agree the scope
-            before making changes.
+            We help choose the questions that matter, check answers and cited
+            sources across agreed platforms, and turn the evidence into an
+            approved action plan. Then we repeat the same checks so you can see
+            what changed.
           </p>
         </div>
         <a
           className="button button-dark"
-          href={sample ? contactEmailUrl : email}
+          href={
+            sample
+              ? contactEmailUrl
+              : "/book?website=" +
+                encodeURIComponent(report.finalUrl) +
+                "&auditDate=" +
+                encodeURIComponent(report.checkedAt)
+          }
         >
-          {sample ? "Discuss a first project" : "Discuss my results"}{" "}
+          {sample ? "Discuss a first project" : "Discuss my findings"}{" "}
           <ArrowUpRight size={17} aria-hidden="true" />
         </a>
+        {!sample && (
+          <a className="text-link" href={email}>
+            Email my findings <ArrowUpRight size={16} aria-hidden="true" />
+          </a>
+        )}
       </div>
     </div>
   );
@@ -338,58 +435,63 @@ export function Results({
 export function WebsiteChecker({
   accessToken,
   onComplete,
+  onRecover,
 }: {
   accessToken: string;
   onComplete: (report: Report) => void;
+  onRecover: () => void;
 }) {
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [needsRecovery, setNeedsRecovery] = useState(false);
+  const mounted = useRef(true);
+  const pending = useRef<AbortController | null>(null);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      pending.current?.abort();
+    };
+  }, []);
   const [report, setReport] = useState<Report | null>(null);
   const resultHeading = useRef<HTMLHeadingElement>(null);
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || needsRecovery) return;
     setBusy(true);
     setError("");
     setReport(null);
     try {
-      const response = await fetch("/api/check", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + accessToken,
-        },
-        body: JSON.stringify({ url: url.trim() }),
-        signal: AbortSignal.timeout(65000),
+      const controller = new AbortController();
+      pending.current = controller;
+      const data = await requestAudit({
+        accessToken,
+        website: url,
+        signal: AbortSignal.any([
+          controller.signal,
+          AbortSignal.timeout(65000),
+        ]),
       });
-      if (!response.headers.get("content-type")?.includes("application/json"))
-        throw new Error(
-          "The checker isn't available on this deployment yet. Please contact the team.",
-        );
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(
-          data.error ||
-            "We couldn't complete the check. No score has been assigned.",
-        );
       if (!isReadinessReport(data))
         throw new Error(
           "The checker returned an incomplete report. Please try again.",
         );
+      if (!mounted.current) return;
       setReport(data);
       onComplete(data);
       setTimeout(() => resultHeading.current?.focus(), 50);
     } catch (error) {
+      if (!mounted.current) return;
+      setNeedsRecovery(true);
       setError(
-        error instanceof Error && error.name === "TimeoutError"
-          ? "The check took too long. No score has been assigned. Please try again later."
-          : error instanceof Error
-            ? error.message
-            : "We couldn't complete a reliable check.",
+        error instanceof Error
+          ? error.message
+          : "We couldn't complete a reliable check.",
       );
     } finally {
-      setBusy(false);
+      pending.current = null;
+      if (mounted.current) setBusy(false);
     }
   }
   return (
@@ -401,7 +503,7 @@ export function WebsiteChecker({
       <div className="container">
         <div className="checker-intro">
           <div>
-            <p className="eyebrow">AEO / GEO READINESS CHECK · FREE</p>
+            <p className="eyebrow">FREE WEBSITE READINESS CHECK</p>
             <h2 id="checker-title">
               Before you change anything,
               <br />
@@ -433,12 +535,13 @@ export function WebsiteChecker({
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   aria-describedby="checker-input-note"
-                  disabled={busy}
+                  disabled={busy || needsRecovery}
                 />
                 <button
                   className="button button-dark"
                   type="submit"
-                  disabled={busy}
+                  disabled={busy || needsRecovery}
+                  aria-busy={busy}
                 >
                   {busy ? (
                     <>
@@ -481,6 +584,13 @@ export function WebsiteChecker({
                     <strong>We couldn't complete a reliable check.</strong>
                     <p>{error}</p>
                     <a href={"mailto:" + site.email}>Ask us to take a look</a>
+                    <button
+                      type="button"
+                      className="button button-outline"
+                      onClick={onRecover}
+                    >
+                      Check saved audit status
+                    </button>
                   </div>
                 </div>
               )}

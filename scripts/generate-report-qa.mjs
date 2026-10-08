@@ -8,10 +8,10 @@ const report = JSON.parse(await readFile(process.argv[2], "utf8"));
 const root = new URL("../", import.meta.url);
 const assets = {
   regularFontBase64: (
-    await readFile(new URL("public/report-fonts/Lato-Regular.ttf", root))
+    await readFile(new URL("public/report-fonts/Inter-Regular.ttf", root))
   ).toString("base64"),
   boldFontBase64: (
-    await readFile(new URL("public/report-fonts/Lato-Bold.ttf", root))
+    await readFile(new URL("public/report-fonts/Inter-Bold.ttf", root))
   ).toString("base64"),
   logoPng:
     "data:image/png;base64," +

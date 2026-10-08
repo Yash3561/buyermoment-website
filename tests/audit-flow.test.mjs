@@ -40,7 +40,12 @@ test("OTP errors are inline, accessible and linked to the verification field", a
   );
   assert.match(page, /id="audit-signin-alert"/);
   assert.match(page, /role="alert"/);
-  assert.match(page, /aria-invalid=\{Boolean\(error\)\}/);
+  const otp = await readFile(
+    new URL("../src/components/OtpInput.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(otp, /aria-invalid=\{error\}/);
+  assert.match(otp, /audit-signin-alert/);
   assert.match(page, /signInAlert\.current\?\.focus\(\)/);
   assert.match(page, /signInErrorMessage\(result\.error, sent\)/);
 });

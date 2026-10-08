@@ -14,7 +14,7 @@ const pages = [
   {
     path: "/audit",
     file: "dist/audit/index.html",
-    title: "Free AEO & GEO readiness audit | ContextLumen",
+    title: "Free Website Audit | ContextLumen",
     description:
       "Inspect your public homepage and crawl rules with evidence-based findings. One free audit per verified account. Not an AI visibility score.",
   },

@@ -7,7 +7,7 @@ export function PolicyPage({ kind }: { kind: "privacy" | "terms" }) {
       <section className="container page-hero" aria-labelledby="policy-heading">
         <p className="eyebrow">
           {privacy ? "PRIVACY NOTICE" : "WEBSITE & FREE AUDIT TERMS"} · UPDATED
-          OCTOBER 6, 2026
+          OCTOBER 8, 2026
         </p>
         <h1 id="policy-heading">
           {privacy ? (
@@ -86,11 +86,12 @@ export function PolicyPage({ kind }: { kind: "privacy" | "terms" }) {
                 report.
               </p>
               <p>
-                The website loads typefaces from Google Fonts, which receives a
-                font request. A Calendly booking link connects you to Calendly.
-                The embedded calendar is not loaded until you choose to load it
-                and may then use cookies and process booking information. There
-                are no advertising pixels on this site.
+                Typefaces are hosted with this website. Your appearance choice
+                is stored locally, and the website you enter is kept in session
+                storage so it survives sign-in. A Calendly booking link connects
+                you to Calendly. The embedded calendar is not loaded until you
+                choose to load it and may then use cookies and process booking
+                information. There are no advertising pixels on this site.
               </p>
               <p>
                 Provider notices:{" "}

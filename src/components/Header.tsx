@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Brand } from "./Brand";
 import { BookingLink } from "./BookingLink";
+import { Appearance } from "./Appearance";
 export function Header({ path = "/" }: { path?: string }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
@@ -43,6 +44,7 @@ export function Header({ path = "/" }: { path?: string }) {
             Talk to the team
           </a>
         </nav>
+        <Appearance />
         <BookingLink className="button button-small nav-contact" />
         <button
           className="menu-toggle"

@@ -23,7 +23,7 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="ContextLumen: Your business. A better answer."
+      content="ContextLumen: Help the right buyers find you in AI search."
     />
     <meta
       property="og:description"
@@ -43,8 +43,27 @@
       content="https://www.contextlumen.com/social-card.png"
     />
     <link rel="canonical" href="https://www.contextlumen.com/" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script>
+      (function () {
+        var choice = "system";
+        try {
+          choice = localStorage.getItem("contextlumen-theme") || "system";
+        } catch (_) {}
+        var dark =
+          choice === "dark" ||
+          (choice !== "light" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+        document.documentElement.style.colorScheme = dark ? "dark" : "light";
+      })();
+    </script>
+    <link
+      rel="preload"
+      href="/fonts/InterVariable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <title>ContextLumen | AI search visibility & website improvements</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
